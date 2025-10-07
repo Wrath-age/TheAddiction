@@ -1,11 +1,3 @@
 {
-  "TP": {
-    "AdminPanel": "Admin Panel",
-    "AdminPanelDesc": "Access the admin panel to manage users and settings.",
-    "UserManagement": "User Management",
-    "Settings": "Settings",
-    "Logs": "Logs",
-    "Dashboard": "Dashboard",
-    "WelcomeMessage": "Welcome to the Admin Panel. Here you can manage all aspects of the application."
-  }
+  "TP": {}
 }
