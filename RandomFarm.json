@@ -3195,7 +3195,7 @@
     "mining.quarry": {
       "DisplayName": "Mining Quarry",
       "Enabled": true,
-      "Weight": 1.0,
+      "Weight": 0.5,
       "MinAmount": 1,
       "MaxAmount": 1,
       "Command": null
