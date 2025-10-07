@@ -1,0 +1,11 @@
+{
+  "View inventory raycast distance": 10.0,
+  "View inventory timeout (seconds) set to 0 to disable": 60.0,
+  "Use console logging": false,
+  "Use discord logging": false,
+  "Webhook URL": "",
+  "Discord name": "Inventory Viewer",
+  "Discord avatar URL": "https://i.imgur.com/BLoVcpz.png",
+  "View Backpack Button AnchorMin": "0.175 0.017",
+  "View Backpack Button AnchorMax": "0.22 0.08"
+}
