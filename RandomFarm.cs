@@ -795,7 +795,8 @@ namespace Oxide.Plugins
 
             var give = ItemManager.Create(def, amount, 0);
             if (give == null) return;
-            if (!player.GiveItem(give))
+            player.GiveItem(give);
+            if (give.parent == null)
             {
                 give.Drop(player.transform.position + Vector3.up * 0.5f, Vector3.zero);
                 return;
