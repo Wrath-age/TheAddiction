@@ -124,6 +124,7 @@ namespace Oxide.Plugins
             // to a dictionary of items with their ItemEntry (weight, amounts, etc.). When defined,
             // these override the default rolling logic for that specific prefab.
             public Dictionary<string, Dictionary<string, ItemEntry>> PrefabLoot = new Dictionary<string, Dictionary<string, ItemEntry>>(StringComparer.OrdinalIgnoreCase);
+            public Dictionary<string, string> PrefabAliases = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
             // NEW: Barrel-specific loot table. Any loot container whose prefab name contains "barrel"
             // will roll from this dictionary instead of the default crate logic.
@@ -331,6 +332,25 @@ namespace Oxide.Plugins
             config.PrefabLoot["heli_crate"] = heliCrate;
             config.PrefabLoot["weapon_crate"] = crateWeapon;
 
+            // Map the prefab short names used by Rust to the loot table keys above so that
+            // crates spawned with alternate names (for example crate_normal_2) still pull
+            // from the intended configuration section by default.
+            config.PrefabAliases.Clear();
+            config.PrefabAliases["crate_normal"] = "crate_normal";
+            config.PrefabAliases["crate_normal_2"] = "weapon_crate";
+            config.PrefabAliases["crate_normal_2_food"] = "crate_normal";
+            config.PrefabAliases["crate_normal_2_medical"] = "crate_normal";
+            config.PrefabAliases["crate_normal_2_tools"] = "crate_tools";
+            config.PrefabAliases["crate_military"] = "crate_military";
+            config.PrefabAliases["crate_military_2"] = "crate_military";
+            config.PrefabAliases["crate_elite"] = "weapon_crate";
+            config.PrefabAliases["crate_underwater_advanced"] = "weapon_crate";
+            config.PrefabAliases["crate_tunnel"] = "crate_normal";
+            config.PrefabAliases["crate_basic"] = "crate_normal";
+            config.PrefabAliases["bradley_crate"] = "heli_crate";
+            config.PrefabAliases["chinookcrate"] = "heli_crate";
+            config.PrefabAliases["cargocrate"] = "heli_crate";
+
             // Default barrel loot: barrels (including coloured variants) will roll from these weighted entries
             config.BarrelLoot.Clear();
             config.BarrelLoot["scrap"] = new ItemEntry { DisplayName = "Scrap", Enabled = true, Weight = 5f, MinAmount = 5, MaxAmount = 15 };
@@ -377,6 +397,11 @@ namespace Oxide.Plugins
                 if (config.PrefabLoot == null)
                 {
                     config.PrefabLoot = new Dictionary<string, Dictionary<string, ItemEntry>>(StringComparer.OrdinalIgnoreCase);
+                    needsSave = true;
+                }
+                if (config.PrefabAliases == null)
+                {
+                    config.PrefabAliases = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
                     needsSave = true;
                 }
                 if (config.BarrelLoot == null)
@@ -683,11 +708,23 @@ namespace Oxide.Plugins
         /// receive a modest buff. Commands are skipped so only physical
         /// items are inserted. Existing container contents are cleared.
         /// </summary>
+        private string ResolvePrefabKey(string shortName)
+        {
+            if (string.IsNullOrEmpty(shortName) || config?.PrefabAliases == null)
+                return shortName;
+
+            if (config.PrefabAliases.TryGetValue(shortName, out var mapped) && !string.IsNullOrEmpty(mapped))
+                return mapped;
+
+            return shortName;
+        }
+
         private void BuffLootContainer(LootContainer crate)
         {
             if (crate == null || crate.inventory == null) return;
             // Determine crate type via prefab short name (lowercase for easier matching)
             string name = crate.ShortPrefabName?.ToLower() ?? string.Empty;
+            string lookupKey = ResolvePrefabKey(name);
 
             // Determine the number of rolls and multiplier based on crate category. These values
             // mirror the original logic: hackable and elite crates receive the biggest boost,
@@ -738,7 +775,7 @@ namespace Oxide.Plugins
                 table = hackTable;
             }
             // Per-prefab crate tables
-            else if (config.PrefabLoot != null && config.PrefabLoot.TryGetValue(name, out var prefabTable))
+            else if (config.PrefabLoot != null && config.PrefabLoot.TryGetValue(lookupKey, out var prefabTable))
             {
                 table = prefabTable;
             }

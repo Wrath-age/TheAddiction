@@ -10056,5 +10056,21 @@
         "Command": null
       }
     }
+  },
+  "PrefabAliases": {
+    "crate_normal": "crate_normal",
+    "crate_normal_2": "weapon_crate",
+    "crate_normal_2_food": "crate_normal",
+    "crate_normal_2_medical": "crate_normal",
+    "crate_normal_2_tools": "crate_tools",
+    "crate_military": "crate_military",
+    "crate_military_2": "crate_military",
+    "crate_elite": "weapon_crate",
+    "crate_underwater_advanced": "weapon_crate",
+    "crate_tunnel": "crate_normal",
+    "crate_basic": "crate_normal",
+    "bradley_crate": "heli_crate",
+    "chinookcrate": "heli_crate",
+    "cargocrate": "heli_crate"
   }
 }

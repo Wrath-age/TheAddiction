@@ -817,10 +817,11 @@ namespace Oxide.Plugins
         {
             if (steamId == 0uL)
                 return;
-            // Avoid duplicate requests for the same Steam ID
-            if (FRequestedAvatars.Contains(steamId))
+            if (!IsImageLibraryAvailable())
                 return;
-            FRequestedAvatars.Add(steamId);
+            // Avoid duplicate requests for the same Steam ID
+            if (!FRequestedAvatars.Add(steamId))
+                return;
             // Construct the URL to the Steam profile XML.  This endpoint does not require an API key.
             string url = $"https://steamcommunity.com/profiles/{steamId}/?xml=1";
             // Perform an asynchronous GET request via Oxide's webrequest library.
@@ -842,6 +843,68 @@ namespace Oxide.Plugins
                 }
                 catch { /* ignore parsing errors */ }
             }, this);
+        }
+
+        /// <summary>
+        /// Checks whether the ImageLibrary has already stored an avatar for the specified Steam ID.
+        /// This guards the warm-up routine from spamming duplicate download requests.
+        /// </summary>
+        private bool HasCachedAvatar(ulong steamId)
+        {
+            if (steamId == 0UL || !IsImageLibraryAvailable())
+                return false;
+
+            try
+            {
+                return (bool)(ImageLibrary.Call("HasImage", steamId.ToString(), (ulong)0) ?? false);
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Determines whether the ImageLibrary reference is currently available.  When the
+        /// dependency reloads after this plugin has already started we need to delay any
+        /// avatar operations until it is ready.
+        /// </summary>
+        private bool IsImageLibraryAvailable() => ImageLibrary != null;
+
+        /// <summary>
+        /// Rebuilds the avatar download queue when ImageLibrary becomes available.  This is
+        /// required because any fallback web requests that ran before the dependency loaded
+        /// would have been skipped, leaving FRequestedAvatars populated and preventing future
+        /// retries.
+        /// </summary>
+        private void WarmAvatarCache()
+        {
+            if (!IsImageLibraryAvailable())
+                return;
+
+            FRequestedAvatars.Clear();
+
+            HashSet<ulong> knownSteamIds = new HashSet<ulong>();
+
+            foreach (BasePlayer player in BasePlayer.activePlayerList)
+            {
+                if (player != null)
+                    knownSteamIds.Add(player.userID);
+            }
+
+            foreach (ulong steamId in FOnlineUserList.Keys)
+                knownSteamIds.Add(steamId);
+
+            foreach (ulong steamId in FOfflineUserList.Keys)
+                knownSteamIds.Add(steamId);
+
+            foreach (ulong steamId in knownSteamIds)
+            {
+                if (steamId == 0UL || HasCachedAvatar(steamId))
+                    continue;
+
+                RequestSteamAvatar(steamId);
+            }
         }
 
         /// <summary>
@@ -2973,6 +3036,28 @@ namespace Oxide.Plugins
                 }
             }
             catch { /* swallow any exceptions if ServerUsers API has changed */ }
+
+            WarmAvatarCache();
+        }
+
+        void OnPluginLoaded(Plugin plugin)
+        {
+            if (plugin == null || !string.Equals(plugin.Name, nameof(ImageLibrary), StringComparison.Ordinal))
+                return;
+
+            ImageLibrary = plugin;
+            WarmAvatarCache();
+        }
+
+        void OnPluginUnloaded(Plugin plugin)
+        {
+            if (plugin == null || !string.Equals(plugin.Name, nameof(ImageLibrary), StringComparison.Ordinal))
+                return;
+
+            if (ReferenceEquals(ImageLibrary, plugin))
+                ImageLibrary = null;
+
+            FRequestedAvatars.Clear();
         }
 
         void OnUserConnected(IPlayer aPlayer) {
