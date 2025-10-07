@@ -2962,7 +2962,7 @@
     },
     "electric.generator.small": {
       "DisplayName": "Test Generator",
-      "Enabled": true,
+      "Enabled": false,
       "Weight": 1.0,
       "MinAmount": 1,
       "MaxAmount": 1,
@@ -3698,8 +3698,8 @@
     },
     "apple.spoiled": {
       "DisplayName": "Rotten Apple",
-      "Enabled": true,
-      "Weight": 1.0,
+      "Enabled": false,
+      "Weight": 1.0,  
       "MinAmount": 1,
       "MaxAmount": 1,
       "Command": null
@@ -3898,7 +3898,7 @@
     },
     "bearmeat.burned": {
       "DisplayName": "Burnt Bear Meat",
-      "Enabled": true,
+      "Enabled": false,
       "Weight": 1.0,
       "MinAmount": 1,
       "MaxAmount": 5,
@@ -3922,7 +3922,7 @@
     },
     "bearmeat.spoiled": {
       "DisplayName": "Spoiled Bear Meat",
-      "Enabled": true,
+      "Enabled": false,
       "Weight": 1.0,
       "MinAmount": 1,
       "MaxAmount": 5,
@@ -3946,7 +3946,7 @@
     },
     "bigcatmeat.spoiled": {
       "DisplayName": "Spoiled Big Cat Meat",
-      "Enabled": true,
+      "Enabled": false,
       "Weight": 1.0,
       "MinAmount": 1,
       "MaxAmount": 5,
@@ -3954,7 +3954,7 @@
     },
     "chicken.burned": {
       "DisplayName": "Burnt Chicken",
-      "Enabled": true,
+      "Enabled": false,
       "Weight": 1.0,
       "MinAmount": 1,
       "MaxAmount": 5,
@@ -3978,7 +3978,7 @@
     },
     "chicken.spoiled": {
       "DisplayName": "Spoiled Chicken",
-      "Enabled": true,
+      "Enabled": false,
       "Weight": 1.0,
       "MinAmount": 1,
       "MaxAmount": 5,
@@ -4002,7 +4002,7 @@
     },
     "crocodilemeat.spoiled": {
       "DisplayName": "Spoiled Crocodile Meat",
-      "Enabled": true,
+      "Enabled": false,
       "Weight": 1.0,
       "MinAmount": 1,
       "MaxAmount": 5,
@@ -4010,7 +4010,7 @@
     },
     "deermeat.burned": {
       "DisplayName": "Burnt Deer Meat",
-      "Enabled": true,
+      "Enabled": false,
       "Weight": 1.0,
       "MinAmount": 1,
       "MaxAmount": 5,
@@ -4034,7 +4034,7 @@
     },
     "deermeat.spoiled": {
       "DisplayName": "Spoiled Deer Meat",
-      "Enabled": true,
+      "Enabled": false,
       "Weight": 1.0,
       "MinAmount": 1,
       "MaxAmount": 5,
@@ -4058,7 +4058,7 @@
     },
     "fish.spoiled": {
       "DisplayName": "Spoiled Fish Meat",
-      "Enabled": true,
+      "Enabled": false,
       "Weight": 1.0,
       "MinAmount": 1,
       "MaxAmount": 5,
@@ -4066,7 +4066,7 @@
     },
     "horsemeat.burned": {
       "DisplayName": "Burnt Horse Meat",
-      "Enabled": true,
+      "Enabled": false,
       "Weight": 1.0,
       "MinAmount": 1,
       "MaxAmount": 5,
@@ -4090,7 +4090,7 @@
     },
     "horsemeat.spoiled": {
       "DisplayName": "Spoiled Horse Meat",
-      "Enabled": true,
+      "Enabled": false,
       "Weight": 1.0,
       "MinAmount": 1,
       "MaxAmount": 5,
@@ -4098,7 +4098,7 @@
     },
     "humanmeat.burned": {
       "DisplayName": "Burnt Human Meat",
-      "Enabled": true,
+      "Enabled": false,
       "Weight": 1.0,
       "MinAmount": 1,
       "MaxAmount": 5,
@@ -4122,7 +4122,7 @@
     },
     "humanmeat.spoiled": {
       "DisplayName": "Spoiled Human Meat",
-      "Enabled": true,
+      "Enabled": false,
       "Weight": 1.0,
       "MinAmount": 1,
       "MaxAmount": 5,
@@ -4130,7 +4130,7 @@
     },
     "meat.pork.burned": {
       "DisplayName": "Burnt Pork",
-      "Enabled": true,
+      "Enabled": false,
       "Weight": 1.0,
       "MinAmount": 1,
       "MaxAmount": 5,
@@ -4154,7 +4154,7 @@
     },
     "porkmeat.spoiled": {
       "DisplayName": "Spoiled Pork Meat",
-      "Enabled": true,
+      "Enabled": false,
       "Weight": 1.0,
       "MinAmount": 1,
       "MaxAmount": 5,
@@ -4178,7 +4178,7 @@
     },
     "snakemeat.spoiled": {
       "DisplayName": "Spoiled Snake Meat",
-      "Enabled": true,
+      "Enabled": false,
       "Weight": 1.0,
       "MinAmount": 1,
       "MaxAmount": 5,
@@ -4186,7 +4186,7 @@
     },
     "wolfmeat.burned": {
       "DisplayName": "Burnt Wolf Meat",
-      "Enabled": true,
+      "Enabled": false,
       "Weight": 1.0,
       "MinAmount": 1,
       "MaxAmount": 5,
@@ -4210,7 +4210,7 @@
     },
     "wolfmeat.spoiled": {
       "DisplayName": "Spoiled Wolf Meat",
-      "Enabled": true,
+      "Enabled": false,
       "Weight": 1.0,
       "MinAmount": 1,
       "MaxAmount": 5,
@@ -4322,7 +4322,7 @@
     },
     "spoiled.produce": {
       "DisplayName": "Spoiled Produce",
-      "Enabled": true,
+      "Enabled": false,
       "Weight": 1.0,
       "MinAmount": 1,
       "MaxAmount": 5,
