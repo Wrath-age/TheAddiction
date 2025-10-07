@@ -622,8 +622,8 @@ namespace Oxide.Plugins
             if (player == null) return null;
 
             GiveRandomItem(player);
-            // Allow vanilla gather so natural resources still drop
-            return null;
+            // Block vanilla yield so trees/ore only give custom loot
+            return true;
         }
 
         /// <summary>
