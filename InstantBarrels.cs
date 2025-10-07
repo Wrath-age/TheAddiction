@@ -68,19 +68,13 @@
             var items = container.inventory.itemList.ToArray();
             foreach (var item in items)
             {
-                // Attempt to give to the player's main inventory first
-                if (!player.inventory.GiveItem(item, player.inventory.containerMain))
+                if (TryGiveItem(player, item))
                 {
-                    // If main is full, try the belt
-                    if (!player.inventory.GiveItem(item, player.inventory.containerBelt))
-                    {
-                        // If belt is full, try the wear container
-                        if (!player.inventory.GiveItem(item, player.inventory.containerWear))
-                        {
-                            // If all containers are full, drop the item at the entity's position
-                            item.Drop(entity.transform.position + UnityEngine.Vector3.up * 0.25f, UnityEngine.Vector3.zero);
-                        }
-                    }
+                    SendPickupNote(player, item);
+                }
+                else
+                {
+                    item.Drop(entity.transform.position + UnityEngine.Vector3.up * 0.25f, UnityEngine.Vector3.zero);
                 }
             }
             // Clear the original container to avoid duplicate item drops
@@ -88,5 +82,21 @@
         }
 
         #endregion
+
+        private bool TryGiveItem(BasePlayer player, Item item)
+        {
+            if (player == null || item == null) return false;
+            if (player.inventory.GiveItem(item, player.inventory.containerMain)) return true;
+            if (player.inventory.GiveItem(item, player.inventory.containerBelt)) return true;
+            if (player.inventory.GiveItem(item, player.inventory.containerWear)) return true;
+            return false;
+        }
+
+        private void SendPickupNote(BasePlayer player, Item item)
+        {
+            var def = item?.info;
+            if (player == null || def == null || item.amount <= 0) return;
+            player.Command("note.inv", def.itemid, item.amount);
+        }
     }
 }

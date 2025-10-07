@@ -229,101 +229,207 @@ namespace Oxide.Plugins
             };
             var crateMilitary = new Dictionary<string, ItemEntry>(StringComparer.OrdinalIgnoreCase)
             {
-                ["riflebody"] = new ItemEntry { DisplayName = "Rifle Body", Enabled = true, Weight = 2f, MinAmount = 1, MaxAmount = 1 },
-                ["smgbody"] = new ItemEntry { DisplayName = "SMG Body", Enabled = true, Weight = 2f, MinAmount = 1, MaxAmount = 1 },
-                ["semibody"] = new ItemEntry { DisplayName = "Semi Body", Enabled = true, Weight = 2f, MinAmount = 1, MaxAmount = 1 },
-                ["tech.trash"] = new ItemEntry { DisplayName = "Tech Trash", Enabled = true, Weight = 2f, MinAmount = 1, MaxAmount = 1 },
-                ["targeting.computer"] = new ItemEntry { DisplayName = "Targeting Computer", Enabled = true, Weight = 1.5f, MinAmount = 1, MaxAmount = 1 },
-                ["cctv.camera"] = new ItemEntry { DisplayName = "CCTV Camera", Enabled = true, Weight = 1.5f, MinAmount = 1, MaxAmount = 1 },
-                ["metal.refined"] = new ItemEntry { DisplayName = "HQ Metal", Enabled = true, Weight = 1f, MinAmount = 3, MaxAmount = 10 },
-                ["explosive.satchel"] = new ItemEntry { DisplayName = "Satchel", Enabled = true, Weight = 0.8f, MinAmount = 1, MaxAmount = 2 },
-                ["ammo.rifle"] = new ItemEntry { DisplayName = "5.56 Ammo", Enabled = true, Weight = 1.5f, MinAmount = 20, MaxAmount = 60 },
-                ["ammo.rifle.explosive"] = new ItemEntry { DisplayName = "Explosive 5.56", Enabled = true, Weight = 0.5f, MinAmount = 5, MaxAmount = 15 },
-                ["weapon.mod.lasersight"] = new ItemEntry { DisplayName = "Laser Sight", Enabled = true, Weight = 0.5f, MinAmount = 1, MaxAmount = 1 },
-                ["weapon.mod.holosight"] = new ItemEntry { DisplayName = "Holosight", Enabled = true, Weight = 0.5f, MinAmount = 1, MaxAmount = 1 },
-                ["weapon.mod.silencer"] = new ItemEntry { DisplayName = "Silencer", Enabled = true, Weight = 0.5f, MinAmount = 1, MaxAmount = 1 },
-                ["supply.signal"] = new ItemEntry { DisplayName = "Supply Signal", Enabled = true, Weight = 0.2f, MinAmount = 1, MaxAmount = 1 }
+                ["riflebody"] = new ItemEntry { DisplayName = "Rifle Body", Enabled = true, Weight = 1.5f, MinAmount = 1, MaxAmount = 1 },
+                ["smgbody"] = new ItemEntry { DisplayName = "SMG Body", Enabled = true, Weight = 1.5f, MinAmount = 1, MaxAmount = 1 },
+                ["semibody"] = new ItemEntry { DisplayName = "Semi Body", Enabled = true, Weight = 1.5f, MinAmount = 1, MaxAmount = 1 },
+                ["targeting.computer"] = new ItemEntry { DisplayName = "Targeting Computer", Enabled = true, Weight = 1f, MinAmount = 1, MaxAmount = 1 },
+                ["cctv.camera"] = new ItemEntry { DisplayName = "CCTV Camera", Enabled = true, Weight = 1f, MinAmount = 1, MaxAmount = 1 },
+                ["metal.refined"] = new ItemEntry { DisplayName = "HQ Metal", Enabled = true, Weight = 0.8f, MinAmount = 5, MaxAmount = 15 },
+                ["rifle.semiautomatic"] = new ItemEntry { DisplayName = "Semi Rifle", Enabled = true, Weight = 1f, MinAmount = 1, MaxAmount = 1 },
+                ["rifle.m39"] = new ItemEntry { DisplayName = "M39 Rifle", Enabled = true, Weight = 0.8f, MinAmount = 1, MaxAmount = 1 },
+                ["smg.mp5"] = new ItemEntry { DisplayName = "MP5A4", Enabled = true, Weight = 0.9f, MinAmount = 1, MaxAmount = 1 },
+                ["pistol.python"] = new ItemEntry { DisplayName = "Python Revolver", Enabled = true, Weight = 0.9f, MinAmount = 1, MaxAmount = 1 },
+                ["shotgun.spas12"] = new ItemEntry { DisplayName = "SPAS-12", Enabled = true, Weight = 0.7f, MinAmount = 1, MaxAmount = 1 },
+                ["explosive.timed"] = new ItemEntry { DisplayName = "Timed Explosive Charge", Enabled = true, Weight = 0.8f, MinAmount = 1, MaxAmount = 1 },
+                ["supply.signal"] = new ItemEntry { DisplayName = "Supply Signal", Enabled = true, Weight = 0.3f, MinAmount = 1, MaxAmount = 1 },
+                ["ammo.rifle"] = new ItemEntry { DisplayName = "5.56 Ammo", Enabled = true, Weight = 1.2f, MinAmount = 30, MaxAmount = 90 },
+                ["ammo.rifle.hv"] = new ItemEntry { DisplayName = "HV 5.56", Enabled = true, Weight = 1f, MinAmount = 20, MaxAmount = 60 },
+                ["ammo.rifle.explosive"] = new ItemEntry { DisplayName = "Explosive 5.56", Enabled = true, Weight = 0.8f, MinAmount = 10, MaxAmount = 30 },
+                ["ammo.grenadelauncher.he"] = new ItemEntry { DisplayName = "40mm HE Grenade", Enabled = true, Weight = 0.5f, MinAmount = 2, MaxAmount = 4 },
+                ["weapon.mod.holosight"] = new ItemEntry { DisplayName = "Holosight", Enabled = true, Weight = 0.8f, MinAmount = 1, MaxAmount = 1 },
+                ["weapon.mod.lasersight"] = new ItemEntry { DisplayName = "Laser Sight", Enabled = true, Weight = 0.8f, MinAmount = 1, MaxAmount = 1 },
+                ["weapon.mod.silencer"] = new ItemEntry { DisplayName = "Silencer", Enabled = true, Weight = 0.8f, MinAmount = 1, MaxAmount = 1 },
+                ["weapon.mod.muzzlebrake"] = new ItemEntry { DisplayName = "Muzzle Brake", Enabled = true, Weight = 0.6f, MinAmount = 1, MaxAmount = 1 },
+                ["weapon.mod.flashlight"] = new ItemEntry { DisplayName = "Weapon Flashlight", Enabled = true, Weight = 0.6f, MinAmount = 1, MaxAmount = 1 },
+                ["grenade.f1"] = new ItemEntry { DisplayName = "F1 Grenade", Enabled = true, Weight = 0.6f, MinAmount = 2, MaxAmount = 4 },
+                ["grenade.beancan"] = new ItemEntry { DisplayName = "Beancan Grenade", Enabled = true, Weight = 0.6f, MinAmount = 2, MaxAmount = 4 },
+                ["medical.syringe"] = new ItemEntry { DisplayName = "Medical Syringe", Enabled = true, Weight = 1f, MinAmount = 4, MaxAmount = 8 },
+                ["ammo.rocket.mlrs"] = new ItemEntry { DisplayName = "MLRS Rocket", Enabled = true, Weight = 0.3f, MinAmount = 1, MaxAmount = 2 }
             };
             // Weapon crate defaults – focused on firearms and attachments
             var crateWeapon = new Dictionary<string, ItemEntry>(StringComparer.OrdinalIgnoreCase)
             {
-                ["pistol.revolver"] = new ItemEntry { DisplayName = "Revolver", Enabled = true, Weight = 1.5f, MinAmount = 1, MaxAmount = 1 },
-                ["pistol.semiauto"] = new ItemEntry { DisplayName = "Semi Pistol", Enabled = true, Weight = 1.5f, MinAmount = 1, MaxAmount = 1 },
-                ["smg.thompson"] = new ItemEntry { DisplayName = "Thompson", Enabled = true, Weight = 1f, MinAmount = 1, MaxAmount = 1 },
-                ["smg.mp5"] = new ItemEntry { DisplayName = "MP5A4", Enabled = true, Weight = 0.5f, MinAmount = 1, MaxAmount = 1 },
+                ["pistol.revolver"] = new ItemEntry { DisplayName = "Revolver", Enabled = true, Weight = 1.2f, MinAmount = 1, MaxAmount = 1 },
+                ["pistol.python"] = new ItemEntry { DisplayName = "Python Revolver", Enabled = true, Weight = 1f, MinAmount = 1, MaxAmount = 1 },
+                ["pistol.m92"] = new ItemEntry { DisplayName = "M92 Pistol", Enabled = true, Weight = 1f, MinAmount = 1, MaxAmount = 1 },
+                ["pistol.semiauto"] = new ItemEntry { DisplayName = "Semi Pistol", Enabled = true, Weight = 1.2f, MinAmount = 1, MaxAmount = 1 },
+                ["smg.thompson"] = new ItemEntry { DisplayName = "Thompson", Enabled = true, Weight = 1.2f, MinAmount = 1, MaxAmount = 1 },
+                ["smg.custom"] = new ItemEntry { DisplayName = "Custom SMG", Enabled = true, Weight = 1f, MinAmount = 1, MaxAmount = 1 },
+                ["smg.mp5"] = new ItemEntry { DisplayName = "MP5A4", Enabled = true, Weight = 0.8f, MinAmount = 1, MaxAmount = 1 },
                 ["shotgun.pump"] = new ItemEntry { DisplayName = "Pump Shotgun", Enabled = true, Weight = 1f, MinAmount = 1, MaxAmount = 1 },
-                ["rifle.semiautomatic"] = new ItemEntry { DisplayName = "Semi Rifle", Enabled = true, Weight = 0.5f, MinAmount = 1, MaxAmount = 1 },
-                ["rifle.ak"] = new ItemEntry { DisplayName = "AK", Enabled = true, Weight = 0.25f, MinAmount = 1, MaxAmount = 1 },
-                ["ammo.pistol"] = new ItemEntry { DisplayName = "Pistol Ammo", Enabled = true, Weight = 2f, MinAmount = 20, MaxAmount = 60 },
-                ["ammo.rifle"] = new ItemEntry { DisplayName = "5.56 Ammo", Enabled = true, Weight = 1.5f, MinAmount = 20, MaxAmount = 60 },
-                ["ammo.pistol.hv"] = new ItemEntry { DisplayName = "HV Pistol Ammo", Enabled = true, Weight = 0.5f, MinAmount = 10, MaxAmount = 30 },
-                ["ammo.rifle.hv"] = new ItemEntry { DisplayName = "HV 5.56", Enabled = true, Weight = 0.5f, MinAmount = 10, MaxAmount = 30 },
-                ["weapon.mod.lasersight"] = new ItemEntry { DisplayName = "Laser Sight", Enabled = true, Weight = 0.5f, MinAmount = 1, MaxAmount = 1 },
-                ["weapon.mod.holosight"] = new ItemEntry { DisplayName = "Holosight", Enabled = true, Weight = 0.5f, MinAmount = 1, MaxAmount = 1 },
-                ["weapon.mod.silencer"] = new ItemEntry { DisplayName = "Silencer", Enabled = true, Weight = 0.5f, MinAmount = 1, MaxAmount = 1 },
-                ["explosive.satchel"] = new ItemEntry { DisplayName = "Satchel", Enabled = true, Weight = 0.3f, MinAmount = 1, MaxAmount = 1 }
+                ["shotgun.spas12"] = new ItemEntry { DisplayName = "SPAS-12", Enabled = true, Weight = 0.6f, MinAmount = 1, MaxAmount = 1 },
+                ["rifle.semiautomatic"] = new ItemEntry { DisplayName = "Semi Rifle", Enabled = true, Weight = 1f, MinAmount = 1, MaxAmount = 1 },
+                ["rifle.m39"] = new ItemEntry { DisplayName = "M39 Rifle", Enabled = true, Weight = 0.5f, MinAmount = 1, MaxAmount = 1 },
+                ["rifle.bolt"] = new ItemEntry { DisplayName = "Bolt Action Rifle", Enabled = true, Weight = 0.4f, MinAmount = 1, MaxAmount = 1 },
+                ["ammo.pistol"] = new ItemEntry { DisplayName = "Pistol Ammo", Enabled = true, Weight = 1.8f, MinAmount = 30, MaxAmount = 90 },
+                ["ammo.pistol.hv"] = new ItemEntry { DisplayName = "HV Pistol Ammo", Enabled = true, Weight = 1f, MinAmount = 20, MaxAmount = 60 },
+                ["ammo.pistol.incendiary"] = new ItemEntry { DisplayName = "Incendiary Pistol Ammo", Enabled = true, Weight = 0.8f, MinAmount = 20, MaxAmount = 60 },
+                ["ammo.rifle"] = new ItemEntry { DisplayName = "5.56 Ammo", Enabled = true, Weight = 1.4f, MinAmount = 30, MaxAmount = 90 },
+                ["ammo.rifle.hv"] = new ItemEntry { DisplayName = "HV 5.56", Enabled = true, Weight = 1f, MinAmount = 25, MaxAmount = 75 },
+                ["ammo.rifle.incendiary"] = new ItemEntry { DisplayName = "Incendiary 5.56", Enabled = true, Weight = 0.9f, MinAmount = 25, MaxAmount = 75 },
+                ["ammo.shotgun"] = new ItemEntry { DisplayName = "12 Gauge Buckshot", Enabled = true, Weight = 1f, MinAmount = 12, MaxAmount = 24 },
+                ["ammo.shotgun.slug"] = new ItemEntry { DisplayName = "12 Gauge Slug", Enabled = true, Weight = 0.8f, MinAmount = 8, MaxAmount = 16 },
+                ["weapon.mod.holosight"] = new ItemEntry { DisplayName = "Holosight", Enabled = true, Weight = 1f, MinAmount = 1, MaxAmount = 1 },
+                ["weapon.mod.lasersight"] = new ItemEntry { DisplayName = "Laser Sight", Enabled = true, Weight = 1f, MinAmount = 1, MaxAmount = 1 },
+                ["weapon.mod.flashlight"] = new ItemEntry { DisplayName = "Weapon Flashlight", Enabled = true, Weight = 1f, MinAmount = 1, MaxAmount = 1 },
+                ["weapon.mod.silencer"] = new ItemEntry { DisplayName = "Silencer", Enabled = true, Weight = 0.9f, MinAmount = 1, MaxAmount = 1 },
+                ["weapon.mod.muzzlebrake"] = new ItemEntry { DisplayName = "Muzzle Brake", Enabled = true, Weight = 0.8f, MinAmount = 1, MaxAmount = 1 },
+                ["weapon.mod.muzzleboost"] = new ItemEntry { DisplayName = "Muzzle Boost", Enabled = true, Weight = 0.8f, MinAmount = 1, MaxAmount = 1 },
+                ["weapon.mod.8xscope"] = new ItemEntry { DisplayName = "8x Zoom Scope", Enabled = true, Weight = 0.6f, MinAmount = 1, MaxAmount = 1 },
+                ["weapon.mod.small.scope"] = new ItemEntry { DisplayName = "4x Zoom Scope", Enabled = true, Weight = 0.7f, MinAmount = 1, MaxAmount = 1 },
+                ["grenade.f1"] = new ItemEntry { DisplayName = "F1 Grenade", Enabled = true, Weight = 0.7f, MinAmount = 2, MaxAmount = 4 }
+            };
+            var crateElite = new Dictionary<string, ItemEntry>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["rifle.lr300"] = new ItemEntry { DisplayName = "LR-300 Rifle", Enabled = true, Weight = 1.5f, MinAmount = 1, MaxAmount = 1 },
+                ["rifle.m39"] = new ItemEntry { DisplayName = "M39 Rifle", Enabled = true, Weight = 1.2f, MinAmount = 1, MaxAmount = 1 },
+                ["rifle.l96"] = new ItemEntry { DisplayName = "L96 Rifle", Enabled = true, Weight = 0.8f, MinAmount = 1, MaxAmount = 1 },
+                ["rifle.bolt"] = new ItemEntry { DisplayName = "Bolt Action Rifle", Enabled = true, Weight = 0.8f, MinAmount = 1, MaxAmount = 1 },
+                ["rifle.ak"] = new ItemEntry { DisplayName = "Assault Rifle", Enabled = true, Weight = 1f, MinAmount = 1, MaxAmount = 1 },
+                ["smg.mp5"] = new ItemEntry { DisplayName = "MP5A4", Enabled = true, Weight = 1f, MinAmount = 1, MaxAmount = 1 },
+                ["smg.thompson"] = new ItemEntry { DisplayName = "Thompson", Enabled = true, Weight = 0.8f, MinAmount = 1, MaxAmount = 1 },
+                ["pistol.python"] = new ItemEntry { DisplayName = "Python Revolver", Enabled = true, Weight = 0.8f, MinAmount = 1, MaxAmount = 1 },
+                ["pistol.m92"] = new ItemEntry { DisplayName = "M92 Pistol", Enabled = true, Weight = 0.6f, MinAmount = 1, MaxAmount = 1 },
+                ["shotgun.spas12"] = new ItemEntry { DisplayName = "SPAS-12", Enabled = true, Weight = 0.6f, MinAmount = 1, MaxAmount = 1 },
+                ["lmg.m249"] = new ItemEntry { DisplayName = "M249", Enabled = true, Weight = 0.5f, MinAmount = 1, MaxAmount = 1 },
+                ["rocket.launcher"] = new ItemEntry { DisplayName = "Rocket Launcher", Enabled = true, Weight = 0.7f, MinAmount = 1, MaxAmount = 1 },
+                ["explosive.timed"] = new ItemEntry { DisplayName = "Timed Explosive Charge", Enabled = true, Weight = 1f, MinAmount = 1, MaxAmount = 2 },
+                ["explosive.satchel"] = new ItemEntry { DisplayName = "Satchel Charge", Enabled = true, Weight = 1f, MinAmount = 2, MaxAmount = 4 },
+                ["ammo.rocket.basic"] = new ItemEntry { DisplayName = "Rocket", Enabled = true, Weight = 1.2f, MinAmount = 1, MaxAmount = 3 },
+                ["ammo.rocket.hv"] = new ItemEntry { DisplayName = "HV Rocket", Enabled = true, Weight = 1f, MinAmount = 1, MaxAmount = 2 },
+                ["ammo.rifle.explosive"] = new ItemEntry { DisplayName = "Explosive 5.56", Enabled = true, Weight = 1f, MinAmount = 15, MaxAmount = 40 },
+                ["ammo.rifle.hv"] = new ItemEntry { DisplayName = "HV 5.56", Enabled = true, Weight = 0.8f, MinAmount = 20, MaxAmount = 60 },
+                ["ammo.rifle.incendiary"] = new ItemEntry { DisplayName = "Incendiary 5.56", Enabled = true, Weight = 0.7f, MinAmount = 20, MaxAmount = 60 },
+                ["ammo.grenadelauncher.he"] = new ItemEntry { DisplayName = "40mm HE Grenade", Enabled = true, Weight = 0.6f, MinAmount = 2, MaxAmount = 4 },
+                ["ammo.grenadelauncher.buckshot"] = new ItemEntry { DisplayName = "40mm Buckshot", Enabled = true, Weight = 0.6f, MinAmount = 2, MaxAmount = 4 },
+                ["weapon.mod.8xscope"] = new ItemEntry { DisplayName = "8x Zoom Scope", Enabled = true, Weight = 0.8f, MinAmount = 1, MaxAmount = 1 },
+                ["weapon.mod.holosight"] = new ItemEntry { DisplayName = "Holosight", Enabled = true, Weight = 0.8f, MinAmount = 1, MaxAmount = 1 },
+                ["weapon.mod.lasersight"] = new ItemEntry { DisplayName = "Laser Sight", Enabled = true, Weight = 0.8f, MinAmount = 1, MaxAmount = 1 },
+                ["weapon.mod.silencer"] = new ItemEntry { DisplayName = "Silencer", Enabled = true, Weight = 0.8f, MinAmount = 1, MaxAmount = 1 },
+                ["weapon.mod.muzzlebrake"] = new ItemEntry { DisplayName = "Muzzle Brake", Enabled = true, Weight = 0.6f, MinAmount = 1, MaxAmount = 1 },
+                ["weapon.mod.muzzleboost"] = new ItemEntry { DisplayName = "Muzzle Boost", Enabled = true, Weight = 0.6f, MinAmount = 1, MaxAmount = 1 },
+                ["weapon.mod.flashlight"] = new ItemEntry { DisplayName = "Weapon Flashlight", Enabled = true, Weight = 0.6f, MinAmount = 1, MaxAmount = 1 },
+                ["targeting.computer"] = new ItemEntry { DisplayName = "Targeting Computer", Enabled = true, Weight = 0.7f, MinAmount = 1, MaxAmount = 1 },
+                ["cctv.camera"] = new ItemEntry { DisplayName = "CCTV Camera", Enabled = true, Weight = 0.7f, MinAmount = 1, MaxAmount = 1 },
+                ["metal.refined"] = new ItemEntry { DisplayName = "HQ Metal", Enabled = true, Weight = 1f, MinAmount = 10, MaxAmount = 25 },
+                ["supply.signal"] = new ItemEntry { DisplayName = "Supply Signal", Enabled = true, Weight = 0.5f, MinAmount = 1, MaxAmount = 1 },
+                ["ammo.rocket.mlrs"] = new ItemEntry { DisplayName = "MLRS Rocket", Enabled = true, Weight = 0.4f, MinAmount = 1, MaxAmount = 2 }
             };
 
             // Heli crate defaults – extremely buffed with high-value loot
             var heliCrate = new Dictionary<string, ItemEntry>(StringComparer.OrdinalIgnoreCase)
             {
-                ["autoturret"] = new ItemEntry { DisplayName = "Auto Turret", Enabled = true, Weight = 1.5f, MinAmount = 1, MaxAmount = 1 },
-                ["rocket.launcher"] = new ItemEntry { DisplayName = "Rocket Launcher", Enabled = true, Weight = 1.5f, MinAmount = 1, MaxAmount = 1 },
-                ["ammo.rocket.basic"] = new ItemEntry { DisplayName = "Rocket", Enabled = true, Weight = 2f, MinAmount = 1, MaxAmount = 3 },
-                ["ammo.rocket.hv"] = new ItemEntry { DisplayName = "HV Rocket", Enabled = true, Weight = 1f, MinAmount = 1, MaxAmount = 2 },
-                ["ammo.rocket.fire"] = new ItemEntry { DisplayName = "Inc Rocket", Enabled = true, Weight = 1f, MinAmount = 1, MaxAmount = 2 },
-                ["ammo.rocket.smoke"] = new ItemEntry { DisplayName = "Smoke Rocket", Enabled = true, Weight = 0.8f, MinAmount = 1, MaxAmount = 2 },
-                ["explosive.timed"] = new ItemEntry { DisplayName = "C4", Enabled = true, Weight = 1.5f, MinAmount = 1, MaxAmount = 2 },
-                ["explosive.satchel"] = new ItemEntry { DisplayName = "Satchel", Enabled = true, Weight = 1.5f, MinAmount = 2, MaxAmount = 4 },
-                ["lmg.m249"] = new ItemEntry { DisplayName = "M249", Enabled = true, Weight = 0.5f, MinAmount = 1, MaxAmount = 1 },
-                ["rifle.l96"] = new ItemEntry { DisplayName = "L96 Rifle", Enabled = true, Weight = 0.5f, MinAmount = 1, MaxAmount = 1 },
-                ["rifle.ak"] = new ItemEntry { DisplayName = "AK", Enabled = true, Weight = 0.5f, MinAmount = 1, MaxAmount = 1 },
-                ["smg.mp5"] = new ItemEntry { DisplayName = "MP5A4", Enabled = true, Weight = 0.5f, MinAmount = 1, MaxAmount = 1 },
-                ["targeting.computer"] = new ItemEntry { DisplayName = "Targeting Computer", Enabled = true, Weight = 1.5f, MinAmount = 1, MaxAmount = 1 },
-                ["cctv.camera"] = new ItemEntry { DisplayName = "CCTV Camera", Enabled = true, Weight = 1.5f, MinAmount = 1, MaxAmount = 1 },
-                ["tech.trash"] = new ItemEntry { DisplayName = "Tech Trash", Enabled = true, Weight = 1f, MinAmount = 1, MaxAmount = 2 },
-                ["metal.refined"] = new ItemEntry { DisplayName = "HQ Metal", Enabled = true, Weight = 2f, MinAmount = 10, MaxAmount = 30 },
-                ["supply.signal"] = new ItemEntry { DisplayName = "Supply Signal", Enabled = true, Weight = 1f, MinAmount = 1, MaxAmount = 2 },
-                ["oretea.pure"] = new ItemEntry { DisplayName = "Pure Ore Tea", Enabled = true, Weight = 0.8f, MinAmount = 1, MaxAmount = 1 },
-                ["woodtea.pure"] = new ItemEntry { DisplayName = "Pure Wood Tea", Enabled = true, Weight = 0.8f, MinAmount = 1, MaxAmount = 1 },
-                ["scraptea.pure"] = new ItemEntry { DisplayName = "Pure Scrap Tea", Enabled = true, Weight = 0.8f, MinAmount = 1, MaxAmount = 1 },
-                ["ammo.rifle.explosive"] = new ItemEntry { DisplayName = "Explosive 5.56", Enabled = true, Weight = 1f, MinAmount = 10, MaxAmount = 20 },
-                ["ammo.rifle.hv"] = new ItemEntry { DisplayName = "HV 5.56", Enabled = true, Weight = 1f, MinAmount = 10, MaxAmount = 20 },
-                ["ammo.grenadelauncher.he"] = new ItemEntry { DisplayName = "40mm HE Grenade", Enabled = true, Weight = 0.5f, MinAmount = 2, MaxAmount = 4 },
-                ["ammo.rocket.sam"] = new ItemEntry { DisplayName = "SAM Ammo", Enabled = true, Weight = 0.5f, MinAmount = 1, MaxAmount = 2 }
+                ["autoturret"] = new ItemEntry { DisplayName = "Auto Turret", Enabled = true, Weight = 1f, MinAmount = 1, MaxAmount = 1 },
+                ["rocket.launcher"] = new ItemEntry { DisplayName = "Rocket Launcher", Enabled = true, Weight = 1f, MinAmount = 1, MaxAmount = 1 },
+                ["ammo.rocket.basic"] = new ItemEntry { DisplayName = "Rocket", Enabled = true, Weight = 1.5f, MinAmount = 2, MaxAmount = 4 },
+                ["ammo.rocket.hv"] = new ItemEntry { DisplayName = "HV Rocket", Enabled = true, Weight = 1f, MinAmount = 1, MaxAmount = 3 },
+                ["ammo.rocket.fire"] = new ItemEntry { DisplayName = "Incendiary Rocket", Enabled = true, Weight = 0.8f, MinAmount = 1, MaxAmount = 3 },
+                ["explosive.timed"] = new ItemEntry { DisplayName = "Timed Explosive Charge", Enabled = true, Weight = 1f, MinAmount = 1, MaxAmount = 2 },
+                ["explosive.satchel"] = new ItemEntry { DisplayName = "Satchel Charge", Enabled = true, Weight = 0.8f, MinAmount = 2, MaxAmount = 4 },
+                ["lmg.m249"] = new ItemEntry { DisplayName = "M249", Enabled = true, Weight = 0.6f, MinAmount = 1, MaxAmount = 1 },
+                ["rifle.l96"] = new ItemEntry { DisplayName = "L96 Rifle", Enabled = true, Weight = 0.6f, MinAmount = 1, MaxAmount = 1 },
+                ["rifle.lr300"] = new ItemEntry { DisplayName = "LR-300 Rifle", Enabled = true, Weight = 0.8f, MinAmount = 1, MaxAmount = 1 },
+                ["rifle.m39"] = new ItemEntry { DisplayName = "M39 Rifle", Enabled = true, Weight = 0.8f, MinAmount = 1, MaxAmount = 1 },
+                ["rifle.ak"] = new ItemEntry { DisplayName = "Assault Rifle", Enabled = true, Weight = 0.8f, MinAmount = 1, MaxAmount = 1 },
+                ["smg.mp5"] = new ItemEntry { DisplayName = "MP5A4", Enabled = true, Weight = 0.8f, MinAmount = 1, MaxAmount = 1 },
+                ["smg.thompson"] = new ItemEntry { DisplayName = "Thompson", Enabled = true, Weight = 0.6f, MinAmount = 1, MaxAmount = 1 },
+                ["pistol.python"] = new ItemEntry { DisplayName = "Python Revolver", Enabled = true, Weight = 0.6f, MinAmount = 1, MaxAmount = 1 },
+                ["weapon.mod.8xscope"] = new ItemEntry { DisplayName = "8x Zoom Scope", Enabled = true, Weight = 0.8f, MinAmount = 1, MaxAmount = 1 },
+                ["weapon.mod.holosight"] = new ItemEntry { DisplayName = "Holosight", Enabled = true, Weight = 0.8f, MinAmount = 1, MaxAmount = 1 },
+                ["weapon.mod.lasersight"] = new ItemEntry { DisplayName = "Laser Sight", Enabled = true, Weight = 0.8f, MinAmount = 1, MaxAmount = 1 },
+                ["weapon.mod.silencer"] = new ItemEntry { DisplayName = "Silencer", Enabled = true, Weight = 0.8f, MinAmount = 1, MaxAmount = 1 },
+                ["weapon.mod.muzzlebrake"] = new ItemEntry { DisplayName = "Muzzle Brake", Enabled = true, Weight = 0.6f, MinAmount = 1, MaxAmount = 1 },
+                ["weapon.mod.flashlight"] = new ItemEntry { DisplayName = "Weapon Flashlight", Enabled = true, Weight = 0.6f, MinAmount = 1, MaxAmount = 1 },
+                ["targeting.computer"] = new ItemEntry { DisplayName = "Targeting Computer", Enabled = true, Weight = 0.8f, MinAmount = 1, MaxAmount = 1 },
+                ["cctv.camera"] = new ItemEntry { DisplayName = "CCTV Camera", Enabled = true, Weight = 0.8f, MinAmount = 1, MaxAmount = 1 },
+                ["metal.refined"] = new ItemEntry { DisplayName = "HQ Metal", Enabled = true, Weight = 1f, MinAmount = 15, MaxAmount = 35 },
+                ["supply.signal"] = new ItemEntry { DisplayName = "Supply Signal", Enabled = true, Weight = 0.6f, MinAmount = 1, MaxAmount = 2 },
+                ["ammo.rifle.explosive"] = new ItemEntry { DisplayName = "Explosive 5.56", Enabled = true, Weight = 0.8f, MinAmount = 20, MaxAmount = 60 },
+                ["ammo.rifle.hv"] = new ItemEntry { DisplayName = "HV 5.56", Enabled = true, Weight = 0.8f, MinAmount = 20, MaxAmount = 60 },
+                ["ammo.grenadelauncher.he"] = new ItemEntry { DisplayName = "40mm HE Grenade", Enabled = true, Weight = 0.6f, MinAmount = 3, MaxAmount = 5 },
+                ["ammo.rocket.mlrs"] = new ItemEntry { DisplayName = "MLRS Rocket", Enabled = true, Weight = 0.4f, MinAmount = 1, MaxAmount = 2 },
+                ["medical.syringe"] = new ItemEntry { DisplayName = "Medical Syringe", Enabled = true, Weight = 0.6f, MinAmount = 4, MaxAmount = 8 }
             };
 
             // Hackable (oil rig) crate defaults – extremely buffed, even more than heli
             var hackableCrate = new Dictionary<string, ItemEntry>(StringComparer.OrdinalIgnoreCase)
             {
-                ["autoturret"] = new ItemEntry { DisplayName = "Auto Turret", Enabled = true, Weight = 2f, MinAmount = 1, MaxAmount = 1 },
-                ["rocket.launcher"] = new ItemEntry { DisplayName = "Rocket Launcher", Enabled = true, Weight = 2f, MinAmount = 1, MaxAmount = 1 },
-                ["ammo.rocket.basic"] = new ItemEntry { DisplayName = "Rocket", Enabled = true, Weight = 3f, MinAmount = 2, MaxAmount = 4 },
-                ["ammo.rocket.hv"] = new ItemEntry { DisplayName = "HV Rocket", Enabled = true, Weight = 2f, MinAmount = 2, MaxAmount = 3 },
-                ["ammo.rocket.fire"] = new ItemEntry { DisplayName = "Inc Rocket", Enabled = true, Weight = 1.5f, MinAmount = 2, MaxAmount = 3 },
-                ["ammo.rocket.smoke"] = new ItemEntry { DisplayName = "Smoke Rocket", Enabled = true, Weight = 1.5f, MinAmount = 2, MaxAmount = 3 },
-                ["explosive.timed"] = new ItemEntry { DisplayName = "C4", Enabled = true, Weight = 2f, MinAmount = 1, MaxAmount = 2 },
-                ["explosive.satchel"] = new ItemEntry { DisplayName = "Satchel", Enabled = true, Weight = 2f, MinAmount = 3, MaxAmount = 6 },
-                ["lmg.m249"] = new ItemEntry { DisplayName = "M249", Enabled = true, Weight = 0.8f, MinAmount = 1, MaxAmount = 1 },
-                ["rifle.l96"] = new ItemEntry { DisplayName = "L96 Rifle", Enabled = true, Weight = 0.8f, MinAmount = 1, MaxAmount = 1 },
-                ["rifle.ak"] = new ItemEntry { DisplayName = "AK", Enabled = true, Weight = 1f, MinAmount = 1, MaxAmount = 1 },
+                ["autoturret"] = new ItemEntry { DisplayName = "Auto Turret", Enabled = true, Weight = 1.5f, MinAmount = 1, MaxAmount = 1 },
+                ["rocket.launcher"] = new ItemEntry { DisplayName = "Rocket Launcher", Enabled = true, Weight = 1.5f, MinAmount = 1, MaxAmount = 1 },
+                ["lmg.m249"] = new ItemEntry { DisplayName = "M249", Enabled = true, Weight = 1f, MinAmount = 1, MaxAmount = 1 },
+                ["rifle.l96"] = new ItemEntry { DisplayName = "L96 Rifle", Enabled = true, Weight = 1f, MinAmount = 1, MaxAmount = 1 },
+                ["rifle.lr300"] = new ItemEntry { DisplayName = "LR-300 Rifle", Enabled = true, Weight = 1.2f, MinAmount = 1, MaxAmount = 1 },
+                ["rifle.m39"] = new ItemEntry { DisplayName = "M39 Rifle", Enabled = true, Weight = 1f, MinAmount = 1, MaxAmount = 1 },
+                ["rifle.bolt"] = new ItemEntry { DisplayName = "Bolt Action Rifle", Enabled = true, Weight = 0.8f, MinAmount = 1, MaxAmount = 1 },
+                ["rifle.ak"] = new ItemEntry { DisplayName = "Assault Rifle", Enabled = true, Weight = 1.2f, MinAmount = 1, MaxAmount = 1 },
                 ["smg.mp5"] = new ItemEntry { DisplayName = "MP5A4", Enabled = true, Weight = 1f, MinAmount = 1, MaxAmount = 1 },
-                ["targeting.computer"] = new ItemEntry { DisplayName = "Targeting Computer", Enabled = true, Weight = 2f, MinAmount = 1, MaxAmount = 1 },
-                ["cctv.camera"] = new ItemEntry { DisplayName = "CCTV Camera", Enabled = true, Weight = 2f, MinAmount = 1, MaxAmount = 1 },
-                ["tech.trash"] = new ItemEntry { DisplayName = "Tech Trash", Enabled = true, Weight = 1.5f, MinAmount = 1, MaxAmount = 2 },
-                ["metal.refined"] = new ItemEntry { DisplayName = "HQ Metal", Enabled = true, Weight = 3f, MinAmount = 20, MaxAmount = 40 },
-                ["supply.signal"] = new ItemEntry { DisplayName = "Supply Signal", Enabled = true, Weight = 1.5f, MinAmount = 1, MaxAmount = 2 },
-                ["oretea.pure"] = new ItemEntry { DisplayName = "Pure Ore Tea", Enabled = true, Weight = 1.5f, MinAmount = 1, MaxAmount = 1 },
-                ["woodtea.pure"] = new ItemEntry { DisplayName = "Pure Wood Tea", Enabled = true, Weight = 1.5f, MinAmount = 1, MaxAmount = 1 },
-                ["scraptea.pure"] = new ItemEntry { DisplayName = "Pure Scrap Tea", Enabled = true, Weight = 1.5f, MinAmount = 1, MaxAmount = 1 },
-                ["ammo.rifle.explosive"] = new ItemEntry { DisplayName = "Explosive 5.56", Enabled = true, Weight = 1.5f, MinAmount = 20, MaxAmount = 40 },
-                ["ammo.rifle.hv"] = new ItemEntry { DisplayName = "HV 5.56", Enabled = true, Weight = 1.5f, MinAmount = 20, MaxAmount = 40 },
-                ["ammo.grenadelauncher.he"] = new ItemEntry { DisplayName = "40mm HE Grenade", Enabled = true, Weight = 1f, MinAmount = 2, MaxAmount = 4 },
-                ["ammo.rocket.sam"] = new ItemEntry { DisplayName = "SAM Ammo", Enabled = true, Weight = 0.5f, MinAmount = 1, MaxAmount = 2 }
+                ["smg.thompson"] = new ItemEntry { DisplayName = "Thompson", Enabled = true, Weight = 0.9f, MinAmount = 1, MaxAmount = 1 },
+                ["pistol.python"] = new ItemEntry { DisplayName = "Python Revolver", Enabled = true, Weight = 0.8f, MinAmount = 1, MaxAmount = 1 },
+                ["pistol.m92"] = new ItemEntry { DisplayName = "M92 Pistol", Enabled = true, Weight = 0.8f, MinAmount = 1, MaxAmount = 1 },
+                ["shotgun.spas12"] = new ItemEntry { DisplayName = "SPAS-12", Enabled = true, Weight = 0.6f, MinAmount = 1, MaxAmount = 1 },
+                ["explosive.timed"] = new ItemEntry { DisplayName = "Timed Explosive Charge", Enabled = true, Weight = 1.2f, MinAmount = 1, MaxAmount = 2 },
+                ["explosive.satchel"] = new ItemEntry { DisplayName = "Satchel Charge", Enabled = true, Weight = 1f, MinAmount = 3, MaxAmount = 6 },
+                ["ammo.rocket.basic"] = new ItemEntry { DisplayName = "Rocket", Enabled = true, Weight = 1.8f, MinAmount = 3, MaxAmount = 6 },
+                ["ammo.rocket.hv"] = new ItemEntry { DisplayName = "HV Rocket", Enabled = true, Weight = 1.3f, MinAmount = 2, MaxAmount = 4 },
+                ["ammo.rocket.fire"] = new ItemEntry { DisplayName = "Incendiary Rocket", Enabled = true, Weight = 1f, MinAmount = 2, MaxAmount = 4 },
+                ["ammo.rocket.mlrs"] = new ItemEntry { DisplayName = "MLRS Rocket", Enabled = true, Weight = 0.7f, MinAmount = 1, MaxAmount = 3 },
+                ["ammo.grenadelauncher.he"] = new ItemEntry { DisplayName = "40mm HE Grenade", Enabled = true, Weight = 0.8f, MinAmount = 3, MaxAmount = 5 },
+                ["ammo.grenadelauncher.buckshot"] = new ItemEntry { DisplayName = "40mm Buckshot", Enabled = true, Weight = 0.8f, MinAmount = 3, MaxAmount = 5 },
+                ["ammo.grenadelauncher.smoke"] = new ItemEntry { DisplayName = "40mm Smoke Grenade", Enabled = true, Weight = 0.6f, MinAmount = 2, MaxAmount = 4 },
+                ["ammo.rifle.explosive"] = new ItemEntry { DisplayName = "Explosive 5.56", Enabled = true, Weight = 1.2f, MinAmount = 30, MaxAmount = 90 },
+                ["ammo.rifle.incendiary"] = new ItemEntry { DisplayName = "Incendiary 5.56", Enabled = true, Weight = 1f, MinAmount = 30, MaxAmount = 90 },
+                ["ammo.rifle.hv"] = new ItemEntry { DisplayName = "HV 5.56", Enabled = true, Weight = 1f, MinAmount = 30, MaxAmount = 90 },
+                ["weapon.mod.8xscope"] = new ItemEntry { DisplayName = "8x Zoom Scope", Enabled = true, Weight = 0.9f, MinAmount = 1, MaxAmount = 1 },
+                ["weapon.mod.holosight"] = new ItemEntry { DisplayName = "Holosight", Enabled = true, Weight = 0.9f, MinAmount = 1, MaxAmount = 1 },
+                ["weapon.mod.lasersight"] = new ItemEntry { DisplayName = "Laser Sight", Enabled = true, Weight = 0.9f, MinAmount = 1, MaxAmount = 1 },
+                ["weapon.mod.silencer"] = new ItemEntry { DisplayName = "Silencer", Enabled = true, Weight = 0.9f, MinAmount = 1, MaxAmount = 1 },
+                ["targeting.computer"] = new ItemEntry { DisplayName = "Targeting Computer", Enabled = true, Weight = 1f, MinAmount = 1, MaxAmount = 2 },
+                ["cctv.camera"] = new ItemEntry { DisplayName = "CCTV Camera", Enabled = true, Weight = 1f, MinAmount = 1, MaxAmount = 2 },
+                ["metal.refined"] = new ItemEntry { DisplayName = "HQ Metal", Enabled = true, Weight = 1.5f, MinAmount = 25, MaxAmount = 50 },
+                ["supply.signal"] = new ItemEntry { DisplayName = "Supply Signal", Enabled = true, Weight = 0.8f, MinAmount = 1, MaxAmount = 2 }
             };
 
             // Cargo hackable crate defaults – similar to hackable but slightly less weighted
-            var cargoHackableCrate = new Dictionary<string, ItemEntry>(hackableCrate, StringComparer.OrdinalIgnoreCase);
+            var cargoHackableCrate = new Dictionary<string, ItemEntry>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["autoturret"] = new ItemEntry { DisplayName = "Auto Turret", Enabled = true, Weight = 1.2f, MinAmount = 1, MaxAmount = 1 },
+                ["rocket.launcher"] = new ItemEntry { DisplayName = "Rocket Launcher", Enabled = true, Weight = 1.2f, MinAmount = 1, MaxAmount = 1 },
+                ["lmg.m249"] = new ItemEntry { DisplayName = "M249", Enabled = true, Weight = 0.8f, MinAmount = 1, MaxAmount = 1 },
+                ["rifle.lr300"] = new ItemEntry { DisplayName = "LR-300 Rifle", Enabled = true, Weight = 1f, MinAmount = 1, MaxAmount = 1 },
+                ["rifle.m39"] = new ItemEntry { DisplayName = "M39 Rifle", Enabled = true, Weight = 0.9f, MinAmount = 1, MaxAmount = 1 },
+                ["rifle.ak"] = new ItemEntry { DisplayName = "Assault Rifle", Enabled = true, Weight = 1f, MinAmount = 1, MaxAmount = 1 },
+                ["rifle.bolt"] = new ItemEntry { DisplayName = "Bolt Action Rifle", Enabled = true, Weight = 0.7f, MinAmount = 1, MaxAmount = 1 },
+                ["smg.mp5"] = new ItemEntry { DisplayName = "MP5A4", Enabled = true, Weight = 0.9f, MinAmount = 1, MaxAmount = 1 },
+                ["smg.thompson"] = new ItemEntry { DisplayName = "Thompson", Enabled = true, Weight = 0.8f, MinAmount = 1, MaxAmount = 1 },
+                ["pistol.python"] = new ItemEntry { DisplayName = "Python Revolver", Enabled = true, Weight = 0.7f, MinAmount = 1, MaxAmount = 1 },
+                ["explosive.timed"] = new ItemEntry { DisplayName = "Timed Explosive Charge", Enabled = true, Weight = 1f, MinAmount = 1, MaxAmount = 2 },
+                ["explosive.satchel"] = new ItemEntry { DisplayName = "Satchel Charge", Enabled = true, Weight = 0.9f, MinAmount = 3, MaxAmount = 5 },
+                ["ammo.rocket.basic"] = new ItemEntry { DisplayName = "Rocket", Enabled = true, Weight = 1.5f, MinAmount = 2, MaxAmount = 5 },
+                ["ammo.rocket.hv"] = new ItemEntry { DisplayName = "HV Rocket", Enabled = true, Weight = 1.1f, MinAmount = 1, MaxAmount = 3 },
+                ["ammo.rocket.fire"] = new ItemEntry { DisplayName = "Incendiary Rocket", Enabled = true, Weight = 0.9f, MinAmount = 1, MaxAmount = 3 },
+                ["ammo.rocket.mlrs"] = new ItemEntry { DisplayName = "MLRS Rocket", Enabled = true, Weight = 0.6f, MinAmount = 1, MaxAmount = 2 },
+                ["ammo.grenadelauncher.he"] = new ItemEntry { DisplayName = "40mm HE Grenade", Enabled = true, Weight = 0.7f, MinAmount = 3, MaxAmount = 5 },
+                ["ammo.rifle.explosive"] = new ItemEntry { DisplayName = "Explosive 5.56", Enabled = true, Weight = 1f, MinAmount = 25, MaxAmount = 75 },
+                ["ammo.rifle.hv"] = new ItemEntry { DisplayName = "HV 5.56", Enabled = true, Weight = 0.9f, MinAmount = 25, MaxAmount = 75 },
+                ["weapon.mod.8xscope"] = new ItemEntry { DisplayName = "8x Zoom Scope", Enabled = true, Weight = 0.7f, MinAmount = 1, MaxAmount = 1 },
+                ["weapon.mod.holosight"] = new ItemEntry { DisplayName = "Holosight", Enabled = true, Weight = 0.8f, MinAmount = 1, MaxAmount = 1 },
+                ["weapon.mod.lasersight"] = new ItemEntry { DisplayName = "Laser Sight", Enabled = true, Weight = 0.8f, MinAmount = 1, MaxAmount = 1 },
+                ["weapon.mod.silencer"] = new ItemEntry { DisplayName = "Silencer", Enabled = true, Weight = 0.8f, MinAmount = 1, MaxAmount = 1 },
+                ["targeting.computer"] = new ItemEntry { DisplayName = "Targeting Computer", Enabled = true, Weight = 0.9f, MinAmount = 1, MaxAmount = 1 },
+                ["cctv.camera"] = new ItemEntry { DisplayName = "CCTV Camera", Enabled = true, Weight = 0.9f, MinAmount = 1, MaxAmount = 1 },
+                ["metal.refined"] = new ItemEntry { DisplayName = "HQ Metal", Enabled = true, Weight = 1.2f, MinAmount = 20, MaxAmount = 40 },
+                ["supply.signal"] = new ItemEntry { DisplayName = "Supply Signal", Enabled = true, Weight = 0.6f, MinAmount = 1, MaxAmount = 2 }
+            };
 
             // Assign tables to prefabs
             config.PrefabLoot["crate_normal"] = crateNormal;
@@ -331,6 +437,7 @@ namespace Oxide.Plugins
             config.PrefabLoot["crate_military"] = crateMilitary;
             config.PrefabLoot["heli_crate"] = heliCrate;
             config.PrefabLoot["weapon_crate"] = crateWeapon;
+            config.PrefabLoot["crate_elite"] = crateElite;
 
             // Map the prefab short names used by Rust to the loot table keys above so that
             // crates spawned with alternate names (for example crate_normal_2) still pull
@@ -343,8 +450,8 @@ namespace Oxide.Plugins
             config.PrefabAliases["crate_normal_2_tools"] = "crate_tools";
             config.PrefabAliases["crate_military"] = "crate_military";
             config.PrefabAliases["crate_military_2"] = "crate_military";
-            config.PrefabAliases["crate_elite"] = "weapon_crate";
-            config.PrefabAliases["crate_underwater_advanced"] = "weapon_crate";
+            config.PrefabAliases["crate_elite"] = "crate_elite";
+            config.PrefabAliases["crate_underwater_advanced"] = "crate_elite";
             config.PrefabAliases["crate_tunnel"] = "crate_normal";
             config.PrefabAliases["crate_basic"] = "crate_normal";
             config.PrefabAliases["bradley_crate"] = "heli_crate";
@@ -353,16 +460,24 @@ namespace Oxide.Plugins
 
             // Default barrel loot: barrels (including coloured variants) will roll from these weighted entries
             config.BarrelLoot.Clear();
-            config.BarrelLoot["scrap"] = new ItemEntry { DisplayName = "Scrap", Enabled = true, Weight = 5f, MinAmount = 5, MaxAmount = 15 };
-            config.BarrelLoot["wood"] = new ItemEntry { DisplayName = "Wood", Enabled = true, Weight = 3f, MinAmount = 100, MaxAmount = 300 };
-            config.BarrelLoot["cloth"] = new ItemEntry { DisplayName = "Cloth", Enabled = true, Weight = 3f, MinAmount = 5, MaxAmount = 15 };
-            config.BarrelLoot["ammo.pistol"] = new ItemEntry { DisplayName = "Pistol Ammo", Enabled = true, Weight = 2f, MinAmount = 10, MaxAmount = 30 };
-            config.BarrelLoot["pistol.revolver"] = new ItemEntry { DisplayName = "Revolver", Enabled = true, Weight = 1f, MinAmount = 1, MaxAmount = 1 };
-            config.BarrelLoot["pistol.semiauto"] = new ItemEntry { DisplayName = "Semi Pistol", Enabled = true, Weight = 0.8f, MinAmount = 1, MaxAmount = 1 };
+            config.BarrelLoot["scrap"] = new ItemEntry { DisplayName = "Scrap", Enabled = true, Weight = 3f, MinAmount = 10, MaxAmount = 25 };
+            config.BarrelLoot["metal.fragments"] = new ItemEntry { DisplayName = "Metal Fragments", Enabled = true, Weight = 2.5f, MinAmount = 150, MaxAmount = 300 };
+            config.BarrelLoot["gunpowder"] = new ItemEntry { DisplayName = "Gun Powder", Enabled = true, Weight = 1.5f, MinAmount = 50, MaxAmount = 120 };
+            config.BarrelLoot["lowgradefuel"] = new ItemEntry { DisplayName = "Low Grade Fuel", Enabled = true, Weight = 1.5f, MinAmount = 20, MaxAmount = 60 };
+            config.BarrelLoot["cloth"] = new ItemEntry { DisplayName = "Cloth", Enabled = true, Weight = 1.2f, MinAmount = 10, MaxAmount = 25 };
             config.BarrelLoot["rope"] = new ItemEntry { DisplayName = "Rope", Enabled = true, Weight = 1.2f, MinAmount = 1, MaxAmount = 3 };
-            config.BarrelLoot["gears"] = new ItemEntry { DisplayName = "Gears", Enabled = true, Weight = 0.5f, MinAmount = 1, MaxAmount = 2 };
-            config.BarrelLoot["metalpipe"] = new ItemEntry { DisplayName = "Metal Pipe", Enabled = true, Weight = 0.5f, MinAmount = 1, MaxAmount = 2 };
-            config.BarrelLoot["metalblade"] = new ItemEntry { DisplayName = "Metal Blade", Enabled = true, Weight = 0.5f, MinAmount = 1, MaxAmount = 2 };
+            config.BarrelLoot["tarp"] = new ItemEntry { DisplayName = "Tarp", Enabled = true, Weight = 1.1f, MinAmount = 1, MaxAmount = 2 };
+            config.BarrelLoot["propanetank"] = new ItemEntry { DisplayName = "Propane Tank", Enabled = true, Weight = 1f, MinAmount = 1, MaxAmount = 2 };
+            config.BarrelLoot["roadsigns"] = new ItemEntry { DisplayName = "Road Signs", Enabled = true, Weight = 1f, MinAmount = 1, MaxAmount = 2 };
+            config.BarrelLoot["sheetmetal"] = new ItemEntry { DisplayName = "Sheet Metal", Enabled = true, Weight = 1f, MinAmount = 1, MaxAmount = 2 };
+            config.BarrelLoot["metalspring"] = new ItemEntry { DisplayName = "Metal Spring", Enabled = true, Weight = 0.9f, MinAmount = 1, MaxAmount = 1 };
+            config.BarrelLoot["gears"] = new ItemEntry { DisplayName = "Gears", Enabled = true, Weight = 0.9f, MinAmount = 1, MaxAmount = 2 };
+            config.BarrelLoot["metalpipe"] = new ItemEntry { DisplayName = "Metal Pipe", Enabled = true, Weight = 0.9f, MinAmount = 1, MaxAmount = 2 };
+            config.BarrelLoot["metalblade"] = new ItemEntry { DisplayName = "Metal Blade", Enabled = true, Weight = 0.9f, MinAmount = 1, MaxAmount = 2 };
+            config.BarrelLoot["electric.fuse"] = new ItemEntry { DisplayName = "Electric Fuse", Enabled = true, Weight = 0.7f, MinAmount = 1, MaxAmount = 1 };
+            config.BarrelLoot["metal.refined"] = new ItemEntry { DisplayName = "HQ Metal", Enabled = true, Weight = 0.6f, MinAmount = 2, MaxAmount = 6 };
+            config.BarrelLoot["metal.ore"] = new ItemEntry { DisplayName = "High Quality Ore", Enabled = true, Weight = 0.8f, MinAmount = 10, MaxAmount = 30 };
+            config.BarrelLoot["sulfur.ore"] = new ItemEntry { DisplayName = "Sulfur Ore", Enabled = true, Weight = 0.8f, MinAmount = 20, MaxAmount = 60 };
 
             // Default NPC body loot: NPC corpses will roll from these weighted entries
             config.NpcLoot.Clear();
@@ -507,7 +622,8 @@ namespace Oxide.Plugins
             if (player == null) return null;
 
             GiveRandomItem(player);
-            return true; // block vanilla
+            // Allow vanilla gather so natural resources still drop
+            return null;
         }
 
         /// <summary>
@@ -518,14 +634,11 @@ namespace Oxide.Plugins
 			if (!config.OverrideAllGather) return null;
 			if (player == null || entity == null) return null;
 
-			// Give random item instead of vanilla
+			// Give a bonus roll but keep the vanilla collectible intact
 			GiveRandomItem(player);
 
-			// Remove the loose node so it can't be spammed
-			entity.Kill(BaseNetworkable.DestroyMode.Gib); // or DestroyMode.None if you don't want gibs
-
-			// Block vanilla pickup
-			return true;
+			// Allow default behaviour so players still gather the natural resource
+			return null;
 		}
 
 
@@ -682,7 +795,19 @@ namespace Oxide.Plugins
 
             var give = ItemManager.Create(def, amount, 0);
             if (give == null) return;
-            player.GiveItem(give);
+            if (!player.GiveItem(give))
+            {
+                give.Drop(player.transform.position + Vector3.up * 0.5f, Vector3.zero);
+                return;
+            }
+
+            ShowItemNotice(player, def, amount);
+        }
+
+        private void ShowItemNotice(BasePlayer player, ItemDefinition def, int amount)
+        {
+            if (player == null || def == null || amount <= 0) return;
+            player.Command("note.inv", def.itemid, amount);
         }
 
         /// <summary>
