@@ -799,16 +799,7 @@ namespace Oxide.Plugins
             if (give.parent == null)
             {
                 give.Drop(player.transform.position + Vector3.up * 0.5f, Vector3.zero);
-                return;
             }
-
-            ShowItemNotice(player, def, amount);
-        }
-
-        private void ShowItemNotice(BasePlayer player, ItemDefinition def, int amount)
-        {
-            if (player == null || def == null || amount <= 0) return;
-            player.Command("note.inv", def.itemid, amount);
         }
 
         /// <summary>
