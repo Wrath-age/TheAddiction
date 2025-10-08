@@ -34,6 +34,7 @@ using Oxide.Core.Libraries.Covalence;
 using Oxide.Core.Plugins;
 using Oxide.Game.Rust.Cui;
 using Oxide.Game.Rust.Libraries;
+using Oxide.Plugins.ImageLibrary;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
