@@ -3462,7 +3462,7 @@ namespace Oxide.Plugins
             var servUser = ServerUsers.Get(targetId);
             UiPage pageType = (servUser != null && servUser.group == ServerUsers.UserGroup.Banned) ? UiPage.PlayerPageBanned : UiPage.PlayerPage;
             // Rebuild the UI after toggling.  Small delay ensures the UI refresh happens after the click event
-            QueueUIRefresh(player, pageType, targetId?.ToString(), 0.2f);
+            QueueUIRefresh(player, pageType, targetId.ToString(), 0.2f);
         }
 
         /// <summary>
