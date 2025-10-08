@@ -1593,7 +1593,8 @@ namespace Oxide.Plugins
 
             // Pre-calc last admin cheat if the player exists and has cheat time set
             if (playerExists && aPlayer.lastAdminCheatTime > 0f) {
-                TimeSpan lastCheatSinceStart = new TimeSpan(0, 0, (int)(Time.realtimeSinceStartup - aPlayer.lastAdminCheatTime));
+                TimeSpan lastCheatSinceStart = new TimeSpan(
+);
                 lastCheatStr = $"{DateTime.UtcNow.Subtract(lastCheatSinceStart):yyyy-MM-dd HH:mm:ss} UTC";
             }
 
@@ -2365,7 +2366,7 @@ namespace Oxide.Plugins
 
             LogDebug($"BuildUI JSON value: \n{newUiLib.JSON}");
             // Cleanup any old/active UI and draw the new one
-            CuiHelper.DestroyUi(aPlayer, CMainPanelName);
+            CuiHelper.DestroyUi(aPlayer, CBasePanelName);
             LogDebug($"Elapsed time (CuiHelper.DestroyUi): {Time.realtimeSinceStartup - newUiLib.StartTime:F8}");
             newUiLib.Draw();
             LogDebug($"Elapsed time (newUiLib.Draw): {Time.realtimeSinceStartup - newUiLib.StartTime:F8}");
@@ -2633,8 +2634,7 @@ namespace Oxide.Plugins
         private static readonly CuiPoint CUserPageBtnMuteFifteenRtAnchor = new CuiPoint(0.48f, 0.84f);
         private static readonly CuiPoint CUserPageBtnMuteThirtyLbAnchor = new CuiPoint(0.49f, 0.78f);
         private static readonly CuiPoint CUserPageBtnMuteThirtyRtAnchor = new CuiPoint(0.64f, 0.84f);
-        private static readonly CuiPoint CUserPageBtnMuteSixtyLbAnchor = new CuiPoint(0.65f, 0.78f);
-        private static readonly CuiPoint CUserPageBtnMuteSixtyRtAnchor = new CuiPoint(0.80f, 0.84f);
+        private static readonly CuiPoint CUserPageBtnMuteSixtyLbAnchor = new CuiPoint(0.65
         // Row 3
         private static readonly CuiPoint CUserPageBtnUnFreezeLbAnchor = new CuiPoint(0.01f, 0.70f);
         private static readonly CuiPoint CUserPageBtnUnFreezeRtAnchor = new CuiPoint(0.16f, 0.76f);
