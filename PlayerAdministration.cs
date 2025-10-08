@@ -70,44 +70,19 @@ namespace Oxide.Plugins
         private Plugin ServerArmour;
         [PluginReference]
         private Plugin Godmode;
+        // Reference to the ImageLibrary plugin for fetching and caching images (e.g. player avatars)
         [PluginReference]
         private Plugin ImageLibrary;
+
+        // Generated avatar cache. Used to store identicon‑style fallback avatars for users whose Steam avatars
+        // cannot be downloaded (e.g. due to network restrictions or lack of API key). The key is the player's
+        // Steam64 ID and the value is a base64‑encoded PNG image. These generated avatars are created on demand
+        // and cached to avoid regenerating them every refresh. They provide a unique, deterministic image for
         // each user based on their ID so admins can still visually distinguish players at a glance.
         private readonly Dictionary<ulong, string> FGeneratedAvatars = new Dictionary<ulong, string>();
 
 #pragma warning restore IDE0044, CS0649
         #endregion Plugin References
-
-        private readonly Dictionary<string, Timer> FRefreshTimers = new Dictionary<string, Timer>();
-        
-        private void QueueUIRefresh(BasePlayer player, UiPage pageType, string targetId = null, float delay = 0.1f)
-        {
-            if (player == null) return;
-
-            string key = $"{player.UserIDString}_{pageType}_{targetId}";
-            lock (FRefreshTimers)
-            {
-                if (FRefreshTimers.TryGetValue(key, out Timer existingTimer))
-                {
-                    existingTimer?.Destroy();
-                    FRefreshTimers.Remove(key);
-                }
-                
-                Timer refreshTimer = timer.Once(delay, () =>
-                {
-                    if (player != null && !player.IsDestroyed)
-                    {
-                        CuiHelper.DestroyUi(player, CBasePanelName);
-                        BuildUI(player, pageType, targetId);
-                    }
-                    lock (FRefreshTimers)
-                    {
-                        FRefreshTimers.Remove(key);
-                    }
-                });
-                FRefreshTimers[key] = refreshTimer;
-            }
-        }
 
         #region Library Imports
         private readonly RustLib rust = Interface.Oxide.GetLibrary<RustLib>();
@@ -842,11 +817,10 @@ namespace Oxide.Plugins
         {
             if (steamId == 0uL)
                 return;
-            if (!IsImageLibraryAvailable())
-                return;
             // Avoid duplicate requests for the same Steam ID
-            if (!FRequestedAvatars.Add(steamId))
+            if (FRequestedAvatars.Contains(steamId))
                 return;
+            FRequestedAvatars.Add(steamId);
             // Construct the URL to the Steam profile XML.  This endpoint does not require an API key.
             string url = $"https://steamcommunity.com/profiles/{steamId}/?xml=1";
             // Perform an asynchronous GET request via Oxide's webrequest library.
@@ -863,79 +837,11 @@ namespace Oxide.Plugins
                         if (ImageLibrary != null)
                         {
                             ImageLibrary.Call("AddImage", avatarUrl, steamId.ToString(), (ulong)0);
-                            // Ensure UI updates after image is loaded
-                            timer.Once(0.5f, () => {
-                                var player = BasePlayer.FindByID(steamId);
-                                if (player != null)
-                                    BuildUI(player, UiPage.PlayerPage, steamId.ToString());
-                            });
                         }
                     }
                 }
                 catch { /* ignore parsing errors */ }
             }, this);
-        }
-
-        /// <summary>
-        /// Checks whether the ImageLibrary has already stored an avatar for the specified Steam ID.
-        /// This guards the warm-up routine from spamming duplicate download requests.
-        /// </summary>
-        private bool HasCachedAvatar(ulong steamId)
-        {
-            if (steamId == 0UL || !IsImageLibraryAvailable())
-                return false;
-
-            try
-            {
-                return (bool)(ImageLibrary.Call("HasImage", steamId.ToString(), (ulong)0) ?? false);
-            }
-            catch
-            {
-                return false;
-            }
-        }
-
-        /// <summary>
-        /// Determines whether the ImageLibrary reference is currently available.  When the
-        /// dependency reloads after this plugin has already started we need to delay any
-        /// avatar operations until it is ready.
-        /// </summary>
-        private bool IsImageLibraryAvailable() => ImageLibrary != null;
-
-        /// <summary>
-        /// Rebuilds the avatar download queue when ImageLibrary becomes available.  This is
-        /// required because any fallback web requests that ran before the dependency loaded
-        /// would have been skipped, leaving FRequestedAvatars populated and preventing future
-        /// retries.
-        /// </summary>
-        private void WarmAvatarCache()
-        {
-            if (!IsImageLibraryAvailable())
-                return;
-
-            FRequestedAvatars.Clear();
-
-            HashSet<ulong> knownSteamIds = new HashSet<ulong>();
-
-            foreach (BasePlayer player in BasePlayer.activePlayerList)
-            {
-                if (player != null)
-                    knownSteamIds.Add(player.userID);
-            }
-
-            foreach (ulong steamId in FOnlineUserList.Keys)
-                knownSteamIds.Add(steamId);
-
-            foreach (ulong steamId in FOfflineUserList.Keys)
-                knownSteamIds.Add(steamId);
-
-            foreach (ulong steamId in knownSteamIds)
-            {
-                if (steamId == 0UL || HasCachedAvatar(steamId))
-                    continue;
-
-                RequestSteamAvatar(steamId);
-            }
         }
 
         /// <summary>
@@ -1028,56 +934,6 @@ namespace Oxide.Plugins
             string dataUri = "data:image/png;base64," + b64;
             FGeneratedAvatars[steamId] = dataUri;
             return dataUri;
-        }
-
-        private string ResolvePlayerAvatar(ulong steamId)
-        {
-            if (steamId == 0UL)
-                return string.Empty;
-
-            string avatarPng = string.Empty;
-
-            if (ImageLibrary != null)
-            {
-                try
-                {
-                    bool hasImage = false;
-                    try
-                    {
-                        hasImage = (bool)(ImageLibrary.Call("HasImage", steamId.ToString(), (ulong)0) ?? false);
-                    }
-                    catch
-                    {
-                        hasImage = false;
-                    }
-
-                    if (hasImage)
-                    {
-                        avatarPng = ImageLibrary.Call("GetImage", steamId.ToString(), (ulong)0) as string ?? string.Empty;
-                        if (string.IsNullOrEmpty(avatarPng))
-                        {
-                            RequestSteamAvatar(steamId);
-                            return GenerateIdenticon(steamId); // Use identicon while loading
-                        }
-                    }
-                    else
-                    {
-                        RequestSteamAvatar(steamId);
-                        return GenerateIdenticon(steamId); // Use identicon while loading
-                    }
-                }
-                catch
-                {
-                    avatarPng = string.Empty;
-                }
-            }
-
-            if (string.IsNullOrEmpty(avatarPng))
-            {
-                avatarPng = GenerateIdenticon(steamId);
-            }
-
-            return avatarPng;
         }
         #endregion
 
@@ -1595,43 +1451,86 @@ namespace Oxide.Plugins
 
             // Pre-calc last admin cheat if the player exists and has cheat time set
             if (playerExists && aPlayer.lastAdminCheatTime > 0f) {
-                TimeSpan lastCheatSinceStart = new TimeSpan(
-);
+                TimeSpan lastCheatSinceStart = new TimeSpan(0, 0, (int)(Time.realtimeSinceStartup - aPlayer.lastAdminCheatTime));
                 lastCheatStr = $"{DateTime.UtcNow.Subtract(lastCheatSinceStart):yyyy-MM-dd HH:mm:ss} UTC";
             }
 
             LogDebug("AddUserPageInfoLabels > Time since last admin cheat has been determined.");
-            // Build the ID row with utility shortcuts and the player's avatar.
+            // Build the ID row with a copy‑to‑clipboard button and optional avatar image.
             {
-                CuiPoint headerMin = new CuiPoint(0.018f, 0.86f);
-                CuiPoint headerMax = new CuiPoint(0.982f, 0.97f);
-                string headerPanel = aUIObj.AddPanel(aParent, headerMin, headerMax, false, CuiColor.BackgroundDark);
-
-                CuiPoint idLblMin = new CuiPoint(0.02f, 0.32f);
-                CuiPoint idLblMax = new CuiPoint(0.60f, 0.82f);
-                CuiPoint idCopyMin = new CuiPoint(0.60f, 0.25f);
-                CuiPoint idCopyMax = new CuiPoint(0.62f, 0.75f);
-                CuiPoint steamIdCopyMin = new CuiPoint(0.64f, 0.25f);
-                CuiPoint steamIdCopyMax = new CuiPoint(0.74f, 0.75f);
-                CuiPoint ipCopyMin = new CuiPoint(0.76f, 0.25f);
-                CuiPoint ipCopyMax = new CuiPoint(0.86f, 0.75f);
-                CuiPoint refreshBtnMin = new CuiPoint(0.88f, 0.25f);
-                CuiPoint refreshBtnMax = new CuiPoint(0.98f, 0.75f);
-
+                // Reserve space for the ID label, copy button and avatar image.  The ID label occupies most of the width,
+                // leaving room for a small copy icon and avatar on the right.
+                // Layout the ID row: allocate ample space for the player ID text, a copy button and the avatar.
+                // The ID label occupies the left 75% of the row, the copy button sits in the next 5%, and
+                // the remaining 20% is reserved for the avatar.  Adjustments here can help ensure the avatar
+                // appears large enough to be visible while leaving room for the copy icon.
+                CuiPoint idLblMin = new CuiPoint(0.025f, 0.88f);
+                CuiPoint idLblMax = new CuiPoint(0.75f, 0.92f);
+                CuiPoint idCopyMin = new CuiPoint(0.75f, 0.88f);
+                CuiPoint idCopyMax = new CuiPoint(0.80f, 0.92f);
+                CuiPoint avatarMin = new CuiPoint(0.80f, 0.88f);
+                CuiPoint avatarMax = new CuiPoint(0.975f, 0.92f);
+                // Compose the ID label text including developer tag when applicable
                 string idLabelText = string.Format(
                     lang.GetMessage("Id Label Format", this, aUIObj.PlayerIdString),
                     aPlayerId,
                     (playerExists && aPlayer.IsDeveloper ? lang.GetMessage("Dev Label Text", this, aUIObj.PlayerIdString) : string.Empty)
                 );
-                aUIObj.AddLabel(headerPanel, idLblMin, idLblMax, CuiColor.TextAlt, idLabelText, string.Empty, 15, TextAnchor.MiddleLeft);
-
-                aUIObj.AddButton(headerPanel, idCopyMin, idCopyMax, CuiColor.Button, CuiColor.Text, "Copy ID", $"playeradministration.copyinfo {aPlayerId}", string.Empty, string.Empty, 12, TextAnchor.MiddleCenter);
-
-                aUIObj.AddButton(headerPanel, steamIdCopyMin, steamIdCopyMax, CuiColor.Button, CuiColor.Text, "Copy Steam", $"playeradministration.copysteam {aPlayerId}", string.Empty, string.Empty, 12, TextAnchor.MiddleCenter);
-
-                aUIObj.AddButton(headerPanel, ipCopyMin, ipCopyMax, CuiColor.Button, CuiColor.Text, "Copy IP", $"playeradministration.copyip {aPlayerId}", string.Empty, string.Empty, 12, TextAnchor.MiddleCenter);
-
-                aUIObj.AddButton(headerPanel, refreshBtnMin, refreshBtnMax, CuiColor.ButtonWarning, CuiColor.TextAlt, "Refresh", $"{CRefreshCmd} {aPlayerId}", string.Empty, string.Empty, 12, TextAnchor.MiddleCenter);
+                aUIObj.AddLabel(aParent, idLblMin, idLblMax, CuiColor.TextAlt, idLabelText, string.Empty, 14, TextAnchor.MiddleLeft);
+                // Add a small copy icon (⧉) as a button.  When clicked it sends the player ID to the requesting admin via chat
+                // Use a simple 'C' label for the copy button instead of an uncommon Unicode glyph that may not render
+                aUIObj.AddButton(aParent, idCopyMin, idCopyMax, CuiColor.Button, CuiColor.Text, "C", $"playeradministration.copyinfo {aPlayerId}", string.Empty, string.Empty, 14, TextAnchor.MiddleCenter);
+                // Attempt to display the player's Steam avatar.  If ImageLibrary is available and the image exists, show it
+                // Attempt to load the player's Steam avatar.  If the avatar has not been downloaded yet
+                // and the ImageLibrary is configured to cache avatars, request the URL and enqueue a
+                // download so that the image will appear on the next refresh.
+                string avatarPng = string.Empty;
+                if (ImageLibrary != null)
+                {
+                    try
+                    {
+                        // First check if the avatar image has already been downloaded and stored
+                        bool hasImage = false;
+                        try
+                        {
+                            hasImage = (bool)(ImageLibrary.Call("HasImage", aPlayerId.ToString(), (ulong)0) ?? false);
+                        }
+                        catch { /* HasImage may not exist on older versions */ }
+                        if (hasImage)
+                        {
+                            avatarPng = ImageLibrary.Call("GetImage", aPlayerId.ToString(), (ulong)0) as string ?? string.Empty;
+                        }
+                        else
+                        {
+                            // Request the remote URL.  Passing true for returnUrl causes GetImage to return a URL if the image is not in storage.
+                            string url = ImageLibrary.Call("GetImage", aPlayerId.ToString(), (ulong)0, true) as string;
+                            if (!string.IsNullOrEmpty(url))
+                            {
+                                // Enqueue download of the avatar image.  Once downloaded it can be retrieved via GetImage.
+                                ImageLibrary.Call("AddImage", url, aPlayerId.ToString(), (ulong)0);
+                            }
+                            // Additionally request the avatar via Steam community XML as a fallback when ImageLibrary is not storing avatars
+                            RequestSteamAvatar(aPlayerId);
+                        }
+                    }
+                    catch { }
+                }
+                // Draw an avatar placeholder or image.  If the player's avatar has been downloaded we draw it; otherwise
+                // generate a deterministic identicon as a fallback so that each player still has a unique visual marker.
+                if (string.IsNullOrEmpty(avatarPng))
+                {
+                    // Use a generated identicon if no remote avatar is available
+                    avatarPng = GenerateIdenticon(aPlayerId);
+                }
+                if (!string.IsNullOrEmpty(avatarPng))
+                {
+                    aUIObj.AddPanel(aParent, avatarMin, avatarMax, false, null, string.Empty, avatarPng);
+                }
+                else
+                {
+                    // As a last resort, draw a dark placeholder so the UI doesn't show a white box
+                    aUIObj.AddPanel(aParent, avatarMin, avatarMax, false, CuiColor.BackgroundMedium, string.Empty);
+                }
             }
             aUIObj.AddLabel(
                 aParent, CUserPageLblAuthLbAnchor, CUserPageLblAuthRtAnchor, CuiColor.TextAlt,
@@ -2329,9 +2228,6 @@ namespace Oxide.Plugins
         /// <param name="aArg">Argument</param>
         /// <param name="aIndFiltered">Indicates if the output should be filtered</param>
         private void BuildUI(BasePlayer aPlayer, UiPage aPageType, string aArg = "", bool aIndFiltered = false) {
-            if (aPlayer == null)
-                return;
-
             // Initiate the new UI and panel
             Cui newUiLib = new Cui(aPlayer, LogDebug, LogError);
             newUiLib.AddElement(CBasePanelName, CMainPanel, CMainPanelName);
@@ -2368,7 +2264,7 @@ namespace Oxide.Plugins
 
             LogDebug($"BuildUI JSON value: \n{newUiLib.JSON}");
             // Cleanup any old/active UI and draw the new one
-            CuiHelper.DestroyUi(aPlayer, CBasePanelName);
+            CuiHelper.DestroyUi(aPlayer, CMainPanelName);
             LogDebug($"Elapsed time (CuiHelper.DestroyUi): {Time.realtimeSinceStartup - newUiLib.StartTime:F8}");
             newUiLib.Draw();
             LogDebug($"Elapsed time (newUiLib.Draw): {Time.realtimeSinceStartup - newUiLib.StartTime:F8}");
@@ -2409,9 +2305,9 @@ namespace Oxide.Plugins
 
             // How frequently (in seconds) the player information panel should refresh on the player page.
             // Lower values update more frequently but may cause visible flickering or increased CPU usage.
-            [DefaultValue(2.5f)]
+            [DefaultValue(1f)]
             [JsonProperty("User Page Refresh Interval", DefaultValueHandling = DefaultValueHandling.Populate)]
-            public float UserPageRefreshInterval { get; set; } = 2.5f;
+            public float UserPageRefreshInterval { get; set; } = 1f;
         }
         #endregion
 
@@ -2452,7 +2348,6 @@ namespace Oxide.Plugins
         private const string CUserPageReasonInputTextCmd = "playeradministration.userpagereasoninputtext";
         private const string CBackpackViewCmd = "playeradministration.viewbackpack";
         private const string CInventoryViewCmd = "playeradministration.viewinventory";
-        private const string CRefreshCmd = "playeradministration.refresh";
         private const string CGodmodeCmd = "playeradministration.godmode";
         private const string CUnGodmodeCmd = "playeradministration.ungodmode";
         #endregion Local commands
@@ -2975,11 +2870,11 @@ namespace Oxide.Plugins
 
         /// <summary>
         /// Interval in seconds between automatic refreshes of the user info page.  A shorter
-        /// interval results in more up-to-date information but can impact server performance if
+        /// interval results in more up‑to‑date information but can impact server performance if
         /// many admins have user pages open simultaneously.  This value is configurable via
-        /// "User Page Refresh Interval" in the configuration.  Defaults to 2.5 seconds if not set.
+        /// "User Page Refresh Interval" in the configuration.  Defaults to 1 second if not set.
         /// </summary>
-        private float FUserPageRefreshInterval = 2.5f;
+        private float FUserPageRefreshInterval = 1f;
 
         #endregion Variables
 
@@ -3017,11 +2912,8 @@ namespace Oxide.Plugins
         }
 
         void Unload() {
-            // Destroy UI for all players
             foreach (BasePlayer player in Player.Players) {
-                if (player != null && !player.IsDestroyed) {
-                    CuiHelper.DestroyUi(player, CBasePanelName);
-                }
+                CuiHelper.DestroyUi(player, CBasePanelName);
 
                 if (FMainPageBanIdInputText.ContainsKey(player.userID))
                     FMainPageBanIdInputText.Remove(player.userID);
@@ -3081,28 +2973,6 @@ namespace Oxide.Plugins
                 }
             }
             catch { /* swallow any exceptions if ServerUsers API has changed */ }
-
-            WarmAvatarCache();
-        }
-
-        void OnPluginLoaded(Plugin plugin)
-        {
-            if (plugin == null || !string.Equals(plugin.Name, nameof(ImageLibrary), StringComparison.Ordinal))
-                return;
-
-            ImageLibrary = plugin;
-            WarmAvatarCache();
-        }
-
-        void OnPluginUnloaded(Plugin plugin)
-        {
-            if (plugin == null || !string.Equals(plugin.Name, nameof(ImageLibrary), StringComparison.Ordinal))
-                return;
-
-            if (ReferenceEquals(ImageLibrary, plugin))
-                ImageLibrary = null;
-
-            FRequestedAvatars.Clear();
         }
 
         void OnUserConnected(IPlayer aPlayer) {
@@ -3194,7 +3064,7 @@ namespace Oxide.Plugins
                 KickMsgWebhookUrl = string.Empty,
                 BroadcastKicks = true,
                 BroadcastBans = true,
-                UserPageRefreshInterval = 2.5f
+                UserPageRefreshInterval = 1f
             };
             LogDebug("Default config loaded");
         }
@@ -3236,11 +3106,6 @@ namespace Oxide.Plugins
                     { "Player Actions Label Text", "Player actions:" },
 
                     { "Id Label Format", "ID: {0}{1}" },
-                    { "Copy Id Button Text", "Copy ID" },
-                    { "Profile Button Text", "Steam Profile" },
-                    { "Refresh Avatar Button Text", "Refresh Avatar" },
-                    { "Profile Link Message Format", "Steam profile: {0}" },
-                    { "Avatar Refresh Queued Text", "Refreshing avatar for {0}. It will update shortly." },
                     { "Auth Level Label Format", "Auth level: {0}" },
                     { "Connection Label Format", "Connection: {0}" },
                     { "Status Label Format", "Status: {0} and {1}" },
@@ -3330,7 +3195,7 @@ namespace Oxide.Plugins
 
         #region Command Callbacks
         [Command(CPadminCmd)]
-        void PlayerAdministrationUICallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
+        private void PlayerAdministrationUICallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
             if (aPlayer.IsServer)
                 return;
 
@@ -3347,7 +3212,7 @@ namespace Oxide.Plugins
         }
 
         [Command(CCloseUiCmd)]
-        void PlayerAdministrationCloseUICallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
+        private void PlayerAdministrationCloseUICallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
             if (aPlayer.IsServer)
                 return;
 
@@ -3366,7 +3231,7 @@ namespace Oxide.Plugins
         }
 
         [Command(CSwitchUiCmd)]
-        void PlayerAdministrationSwitchUICallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
+        private void PlayerAdministrationSwitchUICallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
             if (aPlayer.IsServer)
                 return;
 
@@ -3431,7 +3296,7 @@ namespace Oxide.Plugins
         /// <param name="aCommand">The invoked command name.</param>
         /// <param name="aArgs">Command arguments.  Expects a single argument: the target player's userID.</param>
         [Command("playeradministration.showip")]
-        void PlayerAdministrationShowIp(IPlayer aPlayer, string aCommand, string[] aArgs)
+        private void PlayerAdministrationShowIp(IPlayer aPlayer, string aCommand, string[] aArgs)
         {
             if (aPlayer.IsServer)
                 return;
@@ -3461,7 +3326,7 @@ namespace Oxide.Plugins
             var servUser = ServerUsers.Get(targetId);
             UiPage pageType = (servUser != null && servUser.group == ServerUsers.UserGroup.Banned) ? UiPage.PlayerPageBanned : UiPage.PlayerPage;
             // Rebuild the UI after toggling.  Small delay ensures the UI refresh happens after the click event
-            QueueUIRefresh(player, pageType, targetId.ToString(), 0.2f);
+            timer.Once(0.01f, () => BuildUI(player, pageType, targetId.ToString()));
         }
 
         /// <summary>
@@ -3473,79 +3338,7 @@ namespace Oxide.Plugins
         /// <param name="aCommand">The invoked command name.</param>
         /// <param name="aArgs">Command arguments.  The first argument should be the encoded value to copy.</param>
         [Command("playeradministration.copyinfo")]
-        void PlayerAdministrationCopyInfo(IPlayer aPlayer, string aCommand, string[] aArgs)
-        {
-            if (aPlayer.IsServer || aArgs.Length < 1)
-                return;
-
-            BasePlayer player = BasePlayer.Find(aPlayer.Id);
-            if (player == null || !VerifyPermission(ref player, string.Empty, true))
-                return;
-
-            string info = UnescapeString(aArgs[0]);
-            if (!string.IsNullOrEmpty(info))
-                player.ChatMessage(info);
-        }
-
-        [Command("playeradministration.copysteam")]
-        void PlayerAdministrationCopySteamId(IPlayer aPlayer, string aCommand, string[] aArgs)
-        {
-            if (aPlayer.IsServer || aArgs.Length < 1)
-                return;
-
-            BasePlayer player = BasePlayer.Find(aPlayer.Id);
-            if (player == null || !VerifyPermission(ref player, string.Empty, true))
-                return;
-
-            ulong steamId;
-            if (!ulong.TryParse(aArgs[0], out steamId))
-                return;
-
-            player.ChatMessage($"Steam ID: {steamId}");
-        }
-
-        [Command("playeradministration.copyip")]
-        void PlayerAdministrationCopyIP(IPlayer aPlayer, string aCommand, string[] aArgs)
-        {
-            if (aPlayer.IsServer || aArgs.Length < 1)
-                return;
-
-            BasePlayer player = BasePlayer.Find(aPlayer.Id);
-            if (player == null || !VerifyPermission(ref player, string.Empty, true))
-                return;
-
-            ulong targetId;
-            if (!ulong.TryParse(aArgs[0], out targetId))
-                return;
-
-            var targetPlayer = BasePlayer.FindByID(targetId);
-            if (targetPlayer != null)
-            {
-                player.ChatMessage($"IP: {targetPlayer.IPlayer.Address}");
-            }
-        }
-
-        [Command("playeradministration.refresh")]
-        void PlayerAdministrationRefresh(IPlayer aPlayer, string aCommand, string[] aArgs)
-        {
-            if (aPlayer.IsServer || aArgs.Length < 1)
-                return;
-
-            BasePlayer player = BasePlayer.Find(aPlayer.Id);
-            if (player == null || !VerifyPermission(ref player, string.Empty, true))
-                return;
-
-            ulong targetId;
-            if (!ulong.TryParse(aArgs[0], out targetId))
-                return;
-
-            // Determine which page type to rebuild (banned players have a different page)
-            var servUser = ServerUsers.Get(targetId);
-            UiPage pageType = (servUser != null && servUser.group == ServerUsers.UserGroup.Banned) ? UiPage.PlayerPageBanned : UiPage.PlayerPage;
-
-            // Rebuild the UI after clicking refresh. Small delay ensures the UI refresh happens after the click event
-            CuiHelper.DestroyUi(player, CBasePanelName);
-            timer.Once(0.1f, () => BuildUI(player, pageType, targetId.ToString()));
+        private void PlayerAdministrationCopyInfo(IPlayer aPlayer, string aCommand, string[] aArgs)
         {
             if (aPlayer.IsServer)
                 return;
@@ -3570,7 +3363,7 @@ namespace Oxide.Plugins
         }
 
         [Command(CUnbanUserCmd)]
-        void PlayerAdministrationUnbanUserCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
+        private void PlayerAdministrationUnbanUserCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
             LogDebug("PlayerAdministrationUnbanUserCallback was called");
             ulong targetId;
 
@@ -3593,7 +3386,7 @@ namespace Oxide.Plugins
         }
 
         [Command(CBanUserCmd)]
-        void PlayerAdministrationBanUserCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
+        private void PlayerAdministrationBanUserCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
             LogDebug("PlayerAdministrationBanUserCallback was called");
             ulong targetId;
             string banReasonMsg;
@@ -3643,7 +3436,7 @@ namespace Oxide.Plugins
         }
 
         [Command(CMainPageBanByIdCmd)]
-        void PlayerAdministrationMainPageBanByIdCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
+        private void PlayerAdministrationMainPageBanByIdCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
             if (aPlayer.IsServer)
                 return;
 
@@ -3673,7 +3466,7 @@ namespace Oxide.Plugins
         }
 
         [Command(CKickUserCmd)]
-        void PlayerAdministrationKickUserCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
+        private void PlayerAdministrationKickUserCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
             LogDebug("PlayerAdministrationKickUserCallback was called");
             ulong targetId;
             string kickReasonMsg;
@@ -3716,7 +3509,7 @@ namespace Oxide.Plugins
         }
 
         [Command(CUnmuteUserCmd)]
-        void PlayerAdministrationUnmuteUserCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
+        private void PlayerAdministrationUnmuteUserCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
             LogDebug("PlayerAdministrationUnmuteUserCallback was called");
             ulong targetId;
 
@@ -3753,7 +3546,7 @@ namespace Oxide.Plugins
         }
 
         [Command(CMuteUserCmd)]
-        void PlayerAdministrationMuteUserCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
+        private void PlayerAdministrationMuteUserCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
             LogDebug("PlayerAdministrationMuteUserCallback was called");
             ulong targetId;
             float time;
@@ -3801,7 +3594,7 @@ namespace Oxide.Plugins
         }
 
         [Command(CUnFreezeCmd)]
-        void PlayerAdministrationUnfreezeCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
+        private void PlayerAdministrationUnfreezeCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
             if (aPlayer.IsServer)
                 return;
 
@@ -3819,7 +3612,7 @@ namespace Oxide.Plugins
         }
 
         [Command(CFreezeCmd)]
-        void PlayerAdministrationFreezeCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
+        private void PlayerAdministrationFreezeCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
             if (aPlayer.IsServer)
                 return;
 
@@ -3837,7 +3630,7 @@ namespace Oxide.Plugins
         }
 
         [Command(CBackpackViewCmd)]
-        void PlayerAdministrationViewBackpackCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
+        private void PlayerAdministrationViewBackpackCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
             if (aPlayer.IsServer)
                 return;
 
@@ -3854,7 +3647,7 @@ namespace Oxide.Plugins
         }
 
         [Command(CInventoryViewCmd)]
-        void PlayerAdministrationViewInventoryCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
+        private void PlayerAdministrationViewInventoryCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
             if (aPlayer.IsServer)
                 return;
 
@@ -3871,7 +3664,7 @@ namespace Oxide.Plugins
         }
 
         [Command(CGodmodeCmd)]
-        void PlayerAdministrationGodmodeCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
+        private void PlayerAdministrationGodmodeCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
             if (aPlayer.IsServer)
                 return;
 
@@ -3889,7 +3682,7 @@ namespace Oxide.Plugins
         }
 
         [Command(CUnGodmodeCmd)]
-        void PlayerAdministrationUnGodmodeCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
+        private void PlayerAdministrationUnGodmodeCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
             if (aPlayer.IsServer)
                 return;
 
@@ -3907,7 +3700,7 @@ namespace Oxide.Plugins
         }
 
         [Command(CClearUserInventoryCmd)]
-        void PlayerAdministrationClearUserInventoryCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
+        private void PlayerAdministrationClearUserInventoryCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
             LogDebug("PlayerAdministrationClearUserInventoryCallback was called");
             ulong targetId;
 
@@ -3940,7 +3733,7 @@ namespace Oxide.Plugins
         }
 
         [Command(CResetUserBPCmd)]
-        void PlayerAdministrationResetUserBlueprintsCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
+        private void PlayerAdministrationResetUserBlueprintsCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
             LogDebug("PlayerAdministrationResetUserBlueprintsCallback was called");
             ulong targetId;
 
@@ -3973,7 +3766,7 @@ namespace Oxide.Plugins
         }
 
         [Command(CResetUserMetabolismCmd)]
-        void PlayerAdministrationResetUserMetabolismCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
+        private void PlayerAdministrationResetUserMetabolismCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
             LogDebug("PlayerAdministrationResetUserMetabolismCallback was called");
             ulong targetId;
 
@@ -4006,7 +3799,7 @@ namespace Oxide.Plugins
         }
 
         [Command(CRecoverUserMetabolismCmd)]
-        void PlayerAdministrationRecoverUserMetabolismCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
+        private void PlayerAdministrationRecoverUserMetabolismCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
             LogDebug("PlayerAdministrationRecoverUserMetabolismCallback was called");
             ulong targetId;
             BasePlayer player = null;
@@ -4042,7 +3835,7 @@ namespace Oxide.Plugins
         }
 
         [Command(CTeleportToUserCmd)]
-        void PlayerAdministrationTeleportToUserCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
+        private void PlayerAdministrationTeleportToUserCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
             LogDebug("PlayerAdministrationTeleportToUserCallback was called");
             BasePlayer player = BasePlayer.Find(aPlayer.Id);
             ulong targetId;
@@ -4063,7 +3856,7 @@ namespace Oxide.Plugins
         }
 
         [Command(CTeleportUserCmd)]
-        void PlayerAdministrationTeleportUserCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
+        private void PlayerAdministrationTeleportUserCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
             if (aPlayer.IsServer)
                 return;
 
@@ -4087,7 +3880,7 @@ namespace Oxide.Plugins
         }
 
         [Command(CSpectateUserCmd)]
-        void PlayerAdministrationSpectateUserCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
+        private void PlayerAdministrationSpectateUserCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
             if (aPlayer.IsServer)
                 return;
 
@@ -4108,7 +3901,7 @@ namespace Oxide.Plugins
         }
 
         [Command(CPermsCmd)]
-        void PlayerAdministrationRunPermsCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
+        private void PlayerAdministrationRunPermsCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
             if (aPlayer.IsServer)
                 return;
 
@@ -4128,7 +3921,7 @@ namespace Oxide.Plugins
         }
 
         [Command(CHurtUserCmd)]
-        void PlayerAdministrationHurtUserCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
+        private void PlayerAdministrationHurtUserCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
             LogDebug("PlayerAdministrationHurtUserCallback was called");
             ulong targetId;
             float amount;
@@ -4162,7 +3955,7 @@ namespace Oxide.Plugins
         }
 
         [Command(CKillUserCmd)]
-        void PlayerAdministrationKillUserCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
+        private void PlayerAdministrationKillUserCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
             LogDebug("PlayerAdministrationKillUserCallback was called");
             ulong targetId;
 
@@ -4195,7 +3988,7 @@ namespace Oxide.Plugins
         }
 
         [Command(CHealUserCmd)]
-        void PlayerAdministrationHealUserCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
+        private void PlayerAdministrationHealUserCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
             LogDebug("PlayerAdministrationHealUserCallback was called");
             ulong targetId;
             float amount;
@@ -4238,7 +4031,7 @@ namespace Oxide.Plugins
         /// <param name="admin">The admin whose UI should be refreshed.</param>
         /// <param name="pageType">The type of page being refreshed (should be UiPage.PlayerPage).</param>
         /// <param name="playerArg">The target player argument passed to BuildUI (Steam64 ID).</param>
-        void StartUserPageRefresh(BasePlayer admin, UiPage pageType, string playerArg)
+        private void StartUserPageRefresh(BasePlayer admin, UiPage pageType, string playerArg)
         {
             if (admin == null)
                 return;
@@ -4272,7 +4065,7 @@ namespace Oxide.Plugins
         /// closes the UI or switches away from the player page.
         /// </summary>
         /// <param name="adminId">The userID of the admin.</param>
-        void StopUserPageRefresh(ulong adminId)
+        private void StopUserPageRefresh(ulong adminId)
         {
             if (adminId == 0)
                 return;
@@ -4289,7 +4082,7 @@ namespace Oxide.Plugins
 
         #region Text Update Callbacks
         [Command(CMainPageBanIdInputTextCmd)]
-        void PlayerAdministrationMainPageBanIdInputTextCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
+        private void PlayerAdministrationMainPageBanIdInputTextCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
             if (aPlayer.IsServer)
                 return;
 
@@ -4310,7 +4103,7 @@ namespace Oxide.Plugins
         }
 
         [Command(CUserBtnPageSearchInputTextCmd)]
-        void PlayerAdministrationUserBtnPageSearchInputTextCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
+        private void PlayerAdministrationUserBtnPageSearchInputTextCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
             if (aPlayer.IsServer)
                 return;
 
@@ -4331,7 +4124,7 @@ namespace Oxide.Plugins
         }
 
         [Command(CUserPageReasonInputTextCmd)]
-        void PlayerAdministrationUserPageReasonInputTextCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
+        private void PlayerAdministrationUserPageReasonInputTextCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
             if (aPlayer.IsServer)
                 return;
 
@@ -4353,5 +4146,4 @@ namespace Oxide.Plugins
         #endregion Text Update Callbacks
 #pragma warning restore IDE0051, IDE0060 // Remove unused private members, unused parameter
     }
-}
 }
