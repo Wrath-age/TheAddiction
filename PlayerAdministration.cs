@@ -2634,7 +2634,8 @@ namespace Oxide.Plugins
         private static readonly CuiPoint CUserPageBtnMuteFifteenRtAnchor = new CuiPoint(0.48f, 0.84f);
         private static readonly CuiPoint CUserPageBtnMuteThirtyLbAnchor = new CuiPoint(0.49f, 0.78f);
         private static readonly CuiPoint CUserPageBtnMuteThirtyRtAnchor = new CuiPoint(0.64f, 0.84f);
-        private static readonly CuiPoint CUserPageBtnMuteSixtyLbAnchor = new CuiPoint(0.65
+        private static readonly CuiPoint CUserPageBtnMuteSixtyLbAnchor = new CuiPoint(0.65f, 0.78f);
+        private static readonly CuiPoint CUserPageBtnMuteSixtyRtAnchor = new CuiPoint(0.80f, 0.84f);
         // Row 3
         private static readonly CuiPoint CUserPageBtnUnFreezeLbAnchor = new CuiPoint(0.01f, 0.70f);
         private static readonly CuiPoint CUserPageBtnUnFreezeRtAnchor = new CuiPoint(0.16f, 0.76f);
