@@ -1619,7 +1619,7 @@ namespace Oxide.Plugins
 
                 aUIObj.AddButton(headerPanel, ipCopyMin, ipCopyMax, CuiColor.Button, CuiColor.Text, "Copy IP", $"playeradministration.copyip {aPlayerId}", string.Empty, string.Empty, 12, TextAnchor.MiddleCenter);
 
-                aUIObj.AddButton(headerPanel, refreshBtnMin, refreshBtnMax, CuiColor.ButtonWarning, CuiColor.TextAlt, "Refresh", $"playeradministration.refresh {aPlayerId}", string.Empty, string.Empty, 12, TextAnchor.MiddleCenter);
+                aUIObj.AddButton(headerPanel, refreshBtnMin, refreshBtnMax, CuiColor.ButtonWarning, CuiColor.TextAlt, "Refresh", $"{CRefreshCmd} {aPlayerId}", string.Empty, string.Empty, 12, TextAnchor.MiddleCenter);
             }
             aUIObj.AddLabel(
                 aParent, CUserPageLblAuthLbAnchor, CUserPageLblAuthRtAnchor, CuiColor.TextAlt,
@@ -2440,8 +2440,7 @@ namespace Oxide.Plugins
         private const string CUserPageReasonInputTextCmd = "playeradministration.userpagereasoninputtext";
         private const string CBackpackViewCmd = "playeradministration.viewbackpack";
         private const string CInventoryViewCmd = "playeradministration.viewinventory";
-        private const string COpenProfileCmd = "playeradministration.openprofile";
-        private const string CRefreshAvatarCmd = "playeradministration.refreshavatar";
+        private const string CRefreshCmd = "playeradministration.refresh";
         private const string CGodmodeCmd = "playeradministration.godmode";
         private const string CUnGodmodeCmd = "playeradministration.ungodmode";
         #endregion Local commands
@@ -3459,7 +3458,7 @@ namespace Oxide.Plugins
         /// <param name="aCommand">The invoked command name.</param>
         /// <param name="aArgs">Command arguments.  The first argument should be the encoded value to copy.</param>
         [Command("playeradministration.copyinfo")]
-        private void PlayerAdministrationCopyInfo(IPlayer aPlayer, string aCommand, string[] aArgs)
+        protected void PlayerAdministrationCopyInfo(IPlayer aPlayer, string aCommand, string[] aArgs)
         {
             if (aPlayer.IsServer || aArgs.Length < 1)
                 return;
@@ -3474,7 +3473,7 @@ namespace Oxide.Plugins
         }
 
         [Command("playeradministration.copysteam")]
-        private void PlayerAdministrationCopySteamId(IPlayer aPlayer, string aCommand, string[] aArgs)
+        protected void PlayerAdministrationCopySteamId(IPlayer aPlayer, string aCommand, string[] aArgs)
         {
             if (aPlayer.IsServer || aArgs.Length < 1)
                 return;
@@ -3491,7 +3490,47 @@ namespace Oxide.Plugins
         }
 
         [Command("playeradministration.copyip")]
-        private void PlayerAdministrationCopyIP(IPlayer aPlayer, string aCommand, string[] aArgs)
+        protected void PlayerAdministrationCopyIP(IPlayer aPlayer, string aCommand, string[] aArgs)
+        {
+            if (aPlayer.IsServer || aArgs.Length < 1)
+                return;
+
+            BasePlayer player = BasePlayer.Find(aPlayer.Id);
+            if (player == null || !VerifyPermission(ref player, string.Empty, true))
+                return;
+
+            ulong targetId;
+            if (!ulong.TryParse(aArgs[0], out targetId))
+                return;
+
+            var targetPlayer = BasePlayer.FindByID(targetId);
+            if (targetPlayer != null)
+            {
+                player.ChatMessage($"IP: {targetPlayer.IPlayer.Address}");
+            }
+        }
+
+        [Command("playeradministration.refresh")]
+        protected void PlayerAdministrationRefresh(IPlayer aPlayer, string aCommand, string[] aArgs)
+        {
+            if (aPlayer.IsServer || aArgs.Length < 1)
+                return;
+
+            BasePlayer player = BasePlayer.Find(aPlayer.Id);
+            if (player == null || !VerifyPermission(ref player, string.Empty, true))
+                return;
+
+            ulong targetId;
+            if (!ulong.TryParse(aArgs[0], out targetId))
+                return;
+
+            // Determine which page type to rebuild (banned players have a different page)
+            var servUser = ServerUsers.Get(targetId);
+            UiPage pageType = (servUser != null && servUser.group == ServerUsers.UserGroup.Banned) ? UiPage.PlayerPageBanned : UiPage.PlayerPage;
+
+            // Rebuild the UI after clicking refresh. Small delay ensures the UI refresh happens after the click event
+            CuiHelper.DestroyUi(player, CBasePanelName);
+            timer.Once(0.1f, () => BuildUI(player, pageType, targetId.ToString()));
         {
             if (aPlayer.IsServer)
                 return;
