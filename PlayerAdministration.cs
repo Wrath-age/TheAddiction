@@ -1589,7 +1589,6 @@ namespace Oxide.Plugins
                     lang.GetMessage("Id Label Format", this, aUIObj.PlayerIdString),
                     aPlayerId,
                     (playerExists && aPlayer.IsDeveloper ? lang.GetMessage("Dev Label Text", this, aUIObj.PlayerIdString) : string.Empty)
-                    (playerExists && aPlayer.IsDeveloper ? lang.GetMessage("Dev Label Text", this, aUIObj.PlayerIdString) : string.Empty)
                 );
                 aUIObj.AddLabel(headerPanel, idLblMin, idLblMax, CuiColor.TextAlt, idLabelText, string.Empty, 15, TextAnchor.MiddleLeft);
 
