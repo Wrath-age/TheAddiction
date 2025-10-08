@@ -998,6 +998,55 @@ namespace Oxide.Plugins
             FGeneratedAvatars[steamId] = dataUri;
             return dataUri;
         }
+
+        private string ResolvePlayerAvatar(ulong steamId)
+        {
+            if (steamId == 0UL)
+                return string.Empty;
+
+            string avatarPng = string.Empty;
+
+            if (ImageLibrary != null)
+            {
+                try
+                {
+                    bool hasImage = false;
+                    try
+                    {
+                        hasImage = (bool)(ImageLibrary.Call("HasImage", steamId.ToString(), (ulong)0) ?? false);
+                    }
+                    catch
+                    {
+                        hasImage = false;
+                    }
+
+                    if (hasImage)
+                    {
+                        avatarPng = ImageLibrary.Call("GetImage", steamId.ToString(), (ulong)0) as string ?? string.Empty;
+                    }
+                    else
+                    {
+                        string url = ImageLibrary.Call("GetImage", steamId.ToString(), (ulong)0, true) as string;
+                        if (!string.IsNullOrEmpty(url))
+                        {
+                            ImageLibrary.Call("AddImage", url, steamId.ToString(), (ulong)0);
+                        }
+                        RequestSteamAvatar(steamId);
+                    }
+                }
+                catch
+                {
+                    avatarPng = string.Empty;
+                }
+            }
+
+            if (string.IsNullOrEmpty(avatarPng))
+            {
+                avatarPng = GenerateIdenticon(steamId);
+            }
+
+            return avatarPng;
+        }
         #endregion
 
         /// <summary>
@@ -1519,80 +1568,45 @@ namespace Oxide.Plugins
             }
 
             LogDebug("AddUserPageInfoLabels > Time since last admin cheat has been determined.");
-            // Build the ID row with a copy‑to‑clipboard button and optional avatar image.
+            // Build the ID row with utility shortcuts and the player's avatar.
             {
-                // Reserve space for the ID label, copy button and avatar image.  The ID label occupies most of the width,
-                // leaving room for a small copy icon and avatar on the right.
-                // Layout the ID row: allocate ample space for the player ID text, a copy button and the avatar.
-                // The ID label occupies the left 75% of the row, the copy button sits in the next 5%, and
-                // the remaining 20% is reserved for the avatar.  Adjustments here can help ensure the avatar
-                // appears large enough to be visible while leaving room for the copy icon.
-                CuiPoint idLblMin = new CuiPoint(0.025f, 0.88f);
-                CuiPoint idLblMax = new CuiPoint(0.75f, 0.92f);
-                CuiPoint idCopyMin = new CuiPoint(0.75f, 0.88f);
-                CuiPoint idCopyMax = new CuiPoint(0.80f, 0.92f);
-                CuiPoint avatarMin = new CuiPoint(0.80f, 0.88f);
-                CuiPoint avatarMax = new CuiPoint(0.975f, 0.92f);
-                // Compose the ID label text including developer tag when applicable
+                CuiPoint headerMin = new CuiPoint(0.018f, 0.86f);
+                CuiPoint headerMax = new CuiPoint(0.982f, 0.97f);
+                string headerPanel = aUIObj.AddPanel(aParent, headerMin, headerMax, false, CuiColor.BackgroundDark);
+
+                CuiPoint idLblMin = new CuiPoint(0.02f, 0.32f);
+                CuiPoint idLblMax = new CuiPoint(0.60f, 0.82f);
+                CuiPoint idCopyMin = new CuiPoint(0.60f, 0.18f);
+                CuiPoint idCopyMax = new CuiPoint(0.68f, 0.82f);
+                CuiPoint profileBtnMin = new CuiPoint(0.68f, 0.18f);
+                CuiPoint profileBtnMax = new CuiPoint(0.76f, 0.82f);
+                CuiPoint refreshBtnMin = new CuiPoint(0.76f, 0.18f);
+                CuiPoint refreshBtnMax = new CuiPoint(0.84f, 0.82f);
+                CuiPoint avatarMin = new CuiPoint(0.85f, 0.08f);
+                CuiPoint avatarMax = new CuiPoint(0.98f, 0.92f);
+
                 string idLabelText = string.Format(
                     lang.GetMessage("Id Label Format", this, aUIObj.PlayerIdString),
                     aPlayerId,
                     (playerExists && aPlayer.IsDeveloper ? lang.GetMessage("Dev Label Text", this, aUIObj.PlayerIdString) : string.Empty)
+                    (playerExists && aPlayer.IsDeveloper ? lang.GetMessage("Dev Label Text", this, aUIObj.PlayerIdString) : string.Empty)
                 );
-                aUIObj.AddLabel(aParent, idLblMin, idLblMax, CuiColor.TextAlt, idLabelText, string.Empty, 14, TextAnchor.MiddleLeft);
-                // Add a small copy icon (⧉) as a button.  When clicked it sends the player ID to the requesting admin via chat
-                // Use a simple 'C' label for the copy button instead of an uncommon Unicode glyph that may not render
-                aUIObj.AddButton(aParent, idCopyMin, idCopyMax, CuiColor.Button, CuiColor.Text, "C", $"playeradministration.copyinfo {aPlayerId}", string.Empty, string.Empty, 14, TextAnchor.MiddleCenter);
-                // Attempt to display the player's Steam avatar.  If ImageLibrary is available and the image exists, show it
-                // Attempt to load the player's Steam avatar.  If the avatar has not been downloaded yet
-                // and the ImageLibrary is configured to cache avatars, request the URL and enqueue a
-                // download so that the image will appear on the next refresh.
-                string avatarPng = string.Empty;
-                if (ImageLibrary != null)
-                {
-                    try
-                    {
-                        // First check if the avatar image has already been downloaded and stored
-                        bool hasImage = false;
-                        try
-                        {
-                            hasImage = (bool)(ImageLibrary.Call("HasImage", aPlayerId.ToString(), (ulong)0) ?? false);
-                        }
-                        catch { /* HasImage may not exist on older versions */ }
-                        if (hasImage)
-                        {
-                            avatarPng = ImageLibrary.Call("GetImage", aPlayerId.ToString(), (ulong)0) as string ?? string.Empty;
-                        }
-                        else
-                        {
-                            // Request the remote URL.  Passing true for returnUrl causes GetImage to return a URL if the image is not in storage.
-                            string url = ImageLibrary.Call("GetImage", aPlayerId.ToString(), (ulong)0, true) as string;
-                            if (!string.IsNullOrEmpty(url))
-                            {
-                                // Enqueue download of the avatar image.  Once downloaded it can be retrieved via GetImage.
-                                ImageLibrary.Call("AddImage", url, aPlayerId.ToString(), (ulong)0);
-                            }
-                            // Additionally request the avatar via Steam community XML as a fallback when ImageLibrary is not storing avatars
-                            RequestSteamAvatar(aPlayerId);
-                        }
-                    }
-                    catch { }
-                }
-                // Draw an avatar placeholder or image.  If the player's avatar has been downloaded we draw it; otherwise
-                // generate a deterministic identicon as a fallback so that each player still has a unique visual marker.
-                if (string.IsNullOrEmpty(avatarPng))
-                {
-                    // Use a generated identicon if no remote avatar is available
-                    avatarPng = GenerateIdenticon(aPlayerId);
-                }
+                aUIObj.AddLabel(headerPanel, idLblMin, idLblMax, CuiColor.TextAlt, idLabelText, string.Empty, 15, TextAnchor.MiddleLeft);
+
+                aUIObj.AddButton(headerPanel, idCopyMin, idCopyMax, CuiColor.Button, CuiColor.Text, lang.GetMessage("Copy Id Button Text", this, aUIObj.PlayerIdString), $"playeradministration.copyinfo {aPlayerId}", string.Empty, string.Empty, 12, TextAnchor.MiddleCenter);
+
+                aUIObj.AddButton(headerPanel, profileBtnMin, profileBtnMax, CuiColor.Button, CuiColor.Text, lang.GetMessage("Profile Button Text", this, aUIObj.PlayerIdString), $"{COpenProfileCmd} {aPlayerId}", string.Empty, string.Empty, 12, TextAnchor.MiddleCenter);
+
+                aUIObj.AddButton(headerPanel, refreshBtnMin, refreshBtnMax, CuiColor.ButtonWarning, CuiColor.TextAlt, lang.GetMessage("Refresh Avatar Button Text", this, aUIObj.PlayerIdString), $"{CRefreshAvatarCmd} {aPlayerId}", string.Empty, string.Empty, 12, TextAnchor.MiddleCenter);
+
+                string avatarPng = ResolvePlayerAvatar(aPlayerId);
                 if (!string.IsNullOrEmpty(avatarPng))
                 {
-                    aUIObj.AddPanel(aParent, avatarMin, avatarMax, false, null, string.Empty, avatarPng);
+                    aUIObj.AddPanel(headerPanel, avatarMin, avatarMax, false, null, string.Empty, avatarPng);
                 }
                 else
                 {
-                    // As a last resort, draw a dark placeholder so the UI doesn't show a white box
-                    aUIObj.AddPanel(aParent, avatarMin, avatarMax, false, CuiColor.BackgroundMedium, string.Empty);
+                    aUIObj.AddPanel(headerPanel, avatarMin, avatarMax, false, CuiColor.BackgroundMedium, string.Empty);
                 }
             }
             aUIObj.AddLabel(
@@ -2291,6 +2305,9 @@ namespace Oxide.Plugins
         /// <param name="aArg">Argument</param>
         /// <param name="aIndFiltered">Indicates if the output should be filtered</param>
         private void BuildUI(BasePlayer aPlayer, UiPage aPageType, string aArg = "", bool aIndFiltered = false) {
+            if (aPlayer == null)
+                return;
+
             // Initiate the new UI and panel
             Cui newUiLib = new Cui(aPlayer, LogDebug, LogError);
             newUiLib.AddElement(CBasePanelName, CMainPanel, CMainPanelName);
@@ -2368,9 +2385,9 @@ namespace Oxide.Plugins
 
             // How frequently (in seconds) the player information panel should refresh on the player page.
             // Lower values update more frequently but may cause visible flickering or increased CPU usage.
-            [DefaultValue(1f)]
+            [DefaultValue(2.5f)]
             [JsonProperty("User Page Refresh Interval", DefaultValueHandling = DefaultValueHandling.Populate)]
-            public float UserPageRefreshInterval { get; set; } = 1f;
+            public float UserPageRefreshInterval { get; set; } = 2.5f;
         }
         #endregion
 
@@ -2411,6 +2428,8 @@ namespace Oxide.Plugins
         private const string CUserPageReasonInputTextCmd = "playeradministration.userpagereasoninputtext";
         private const string CBackpackViewCmd = "playeradministration.viewbackpack";
         private const string CInventoryViewCmd = "playeradministration.viewinventory";
+        private const string COpenProfileCmd = "playeradministration.openprofile";
+        private const string CRefreshAvatarCmd = "playeradministration.refreshavatar";
         private const string CGodmodeCmd = "playeradministration.godmode";
         private const string CUnGodmodeCmd = "playeradministration.ungodmode";
         #endregion Local commands
@@ -2933,11 +2952,11 @@ namespace Oxide.Plugins
 
         /// <summary>
         /// Interval in seconds between automatic refreshes of the user info page.  A shorter
-        /// interval results in more up‑to‑date information but can impact server performance if
+        /// interval results in more up-to-date information but can impact server performance if
         /// many admins have user pages open simultaneously.  This value is configurable via
-        /// "User Page Refresh Interval" in the configuration.  Defaults to 1 second if not set.
+        /// "User Page Refresh Interval" in the configuration.  Defaults to 2.5 seconds if not set.
         /// </summary>
-        private float FUserPageRefreshInterval = 1f;
+        private float FUserPageRefreshInterval = 2.5f;
 
         #endregion Variables
 
@@ -3149,7 +3168,7 @@ namespace Oxide.Plugins
                 KickMsgWebhookUrl = string.Empty,
                 BroadcastKicks = true,
                 BroadcastBans = true,
-                UserPageRefreshInterval = 1f
+                UserPageRefreshInterval = 2.5f
             };
             LogDebug("Default config loaded");
         }
@@ -3191,6 +3210,11 @@ namespace Oxide.Plugins
                     { "Player Actions Label Text", "Player actions:" },
 
                     { "Id Label Format", "ID: {0}{1}" },
+                    { "Copy Id Button Text", "Copy ID" },
+                    { "Profile Button Text", "Steam Profile" },
+                    { "Refresh Avatar Button Text", "Refresh Avatar" },
+                    { "Profile Link Message Format", "Steam profile: {0}" },
+                    { "Avatar Refresh Queued Text", "Refreshing avatar for {0}. It will update shortly." },
                     { "Auth Level Label Format", "Auth level: {0}" },
                     { "Connection Label Format", "Connection: {0}" },
                     { "Status Label Format", "Status: {0} and {1}" },
