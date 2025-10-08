@@ -70,6 +70,8 @@ namespace Oxide.Plugins
         private Plugin ServerArmour;
         [PluginReference]
         private Plugin Godmode;
+        [PluginReference]
+        private Plugin ImageLibrary;
         // each user based on their ID so admins can still visually distinguish players at a glance.
         private readonly Dictionary<ulong, string> FGeneratedAvatars = new Dictionary<ulong, string>();
 
