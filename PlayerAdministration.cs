@@ -838,6 +838,12 @@ namespace Oxide.Plugins
                         if (ImageLibrary != null)
                         {
                             ImageLibrary.Call("AddImage", avatarUrl, steamId.ToString(), (ulong)0);
+                            // Ensure UI updates after image is loaded
+                            timer.Once(0.5f, () => {
+                                var player = BasePlayer.FindByID(steamId);
+                                if (player != null)
+                                    BuildUI(player, UiPage.PlayerPage, steamId.ToString());
+                            });
                         }
                     }
                 }
@@ -1576,14 +1582,14 @@ namespace Oxide.Plugins
 
                 CuiPoint idLblMin = new CuiPoint(0.02f, 0.32f);
                 CuiPoint idLblMax = new CuiPoint(0.60f, 0.82f);
-                CuiPoint idCopyMin = new CuiPoint(0.60f, 0.18f);
-                CuiPoint idCopyMax = new CuiPoint(0.68f, 0.82f);
-                CuiPoint profileBtnMin = new CuiPoint(0.68f, 0.18f);
-                CuiPoint profileBtnMax = new CuiPoint(0.76f, 0.82f);
-                CuiPoint refreshBtnMin = new CuiPoint(0.76f, 0.18f);
-                CuiPoint refreshBtnMax = new CuiPoint(0.84f, 0.82f);
-                CuiPoint avatarMin = new CuiPoint(0.85f, 0.08f);
-                CuiPoint avatarMax = new CuiPoint(0.98f, 0.92f);
+                CuiPoint idCopyMin = new CuiPoint(0.60f, 0.25f);
+                CuiPoint idCopyMax = new CuiPoint(0.68f, 0.75f);
+                CuiPoint profileBtnMin = new CuiPoint(0.69f, 0.25f);
+                CuiPoint profileBtnMax = new CuiPoint(0.77f, 0.75f);
+                CuiPoint refreshBtnMin = new CuiPoint(0.78f, 0.25f);
+                CuiPoint refreshBtnMax = new CuiPoint(0.84f, 0.75f);
+                CuiPoint avatarMin = new CuiPoint(0.86f, 0.15f);
+                CuiPoint avatarMax = new CuiPoint(0.97f, 0.85f);
 
                 string idLabelText = string.Format(
                     lang.GetMessage("Id Label Format", this, aUIObj.PlayerIdString),
@@ -3434,7 +3440,7 @@ namespace Oxide.Plugins
             var servUser = ServerUsers.Get(targetId);
             UiPage pageType = (servUser != null && servUser.group == ServerUsers.UserGroup.Banned) ? UiPage.PlayerPageBanned : UiPage.PlayerPage;
             // Rebuild the UI after toggling.  Small delay ensures the UI refresh happens after the click event
-            timer.Once(0.01f, () => BuildUI(player, pageType, targetId.ToString()));
+            timer.Once(0.2f, () => BuildUI(player, pageType, targetId.ToString()));
         }
 
         /// <summary>
