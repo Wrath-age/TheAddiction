@@ -34,7 +34,6 @@ using Oxide.Core.Libraries.Covalence;
 using Oxide.Core.Plugins;
 using Oxide.Game.Rust.Cui;
 using Oxide.Game.Rust.Libraries;
-using Oxide.Plugins.ImageLibrary;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -81,21 +80,31 @@ namespace Oxide.Plugins
         
         private void QueueUIRefresh(BasePlayer player, UiPage pageType, string targetId = null, float delay = 0.1f)
         {
+            if (player == null) return;
+
             string key = $"{player.UserIDString}_{pageType}_{targetId}";
-            if (FRefreshTimers.ContainsKey(key))
+            lock (FRefreshTimers)
             {
-                FRefreshTimers[key]?.Destroy();
-                FRefreshTimers.Remove(key);
-            }
-            
-            Timer refreshTimer = timer.Once(delay, () =>
-            {
-                CuiHelper.DestroyUi(player, CBasePanelName);
-                BuildUI(player, pageType, targetId);
-                if (FRefreshTimers.ContainsKey(key))
+                if (FRefreshTimers.TryGetValue(key, out Timer existingTimer))
+                {
+                    existingTimer?.Destroy();
                     FRefreshTimers.Remove(key);
-            });
-            FRefreshTimers[key] = refreshTimer;
+                }
+                
+                Timer refreshTimer = timer.Once(delay, () =>
+                {
+                    if (player != null && !player.IsDestroyed)
+                    {
+                        CuiHelper.DestroyUi(player, CBasePanelName);
+                        BuildUI(player, pageType, targetId);
+                    }
+                    lock (FRefreshTimers)
+                    {
+                        FRefreshTimers.Remove(key);
+                    }
+                });
+                FRefreshTimers[key] = refreshTimer;
+            }
         }
 
         #region Library Imports
@@ -3005,8 +3014,11 @@ namespace Oxide.Plugins
         }
 
         void Unload() {
+            // Destroy UI for all players
             foreach (BasePlayer player in Player.Players) {
-                CuiHelper.DestroyUi(player, CBasePanelName);
+                if (player != null && !player.IsDestroyed) {
+                    CuiHelper.DestroyUi(player, CBasePanelName);
+                }
 
                 if (FMainPageBanIdInputText.ContainsKey(player.userID))
                     FMainPageBanIdInputText.Remove(player.userID);
@@ -3315,7 +3327,7 @@ namespace Oxide.Plugins
 
         #region Command Callbacks
         [Command(CPadminCmd)]
-        private void PlayerAdministrationUICallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
+        void PlayerAdministrationUICallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
             if (aPlayer.IsServer)
                 return;
 
@@ -3332,7 +3344,7 @@ namespace Oxide.Plugins
         }
 
         [Command(CCloseUiCmd)]
-        private void PlayerAdministrationCloseUICallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
+        void PlayerAdministrationCloseUICallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
             if (aPlayer.IsServer)
                 return;
 
@@ -3351,7 +3363,7 @@ namespace Oxide.Plugins
         }
 
         [Command(CSwitchUiCmd)]
-        private void PlayerAdministrationSwitchUICallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
+        void PlayerAdministrationSwitchUICallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
             if (aPlayer.IsServer)
                 return;
 
@@ -3416,7 +3428,7 @@ namespace Oxide.Plugins
         /// <param name="aCommand">The invoked command name.</param>
         /// <param name="aArgs">Command arguments.  Expects a single argument: the target player's userID.</param>
         [Command("playeradministration.showip")]
-        private void PlayerAdministrationShowIp(IPlayer aPlayer, string aCommand, string[] aArgs)
+        void PlayerAdministrationShowIp(IPlayer aPlayer, string aCommand, string[] aArgs)
         {
             if (aPlayer.IsServer)
                 return;
@@ -3458,7 +3470,7 @@ namespace Oxide.Plugins
         /// <param name="aCommand">The invoked command name.</param>
         /// <param name="aArgs">Command arguments.  The first argument should be the encoded value to copy.</param>
         [Command("playeradministration.copyinfo")]
-        protected void PlayerAdministrationCopyInfo(IPlayer aPlayer, string aCommand, string[] aArgs)
+        void PlayerAdministrationCopyInfo(IPlayer aPlayer, string aCommand, string[] aArgs)
         {
             if (aPlayer.IsServer || aArgs.Length < 1)
                 return;
@@ -3473,7 +3485,7 @@ namespace Oxide.Plugins
         }
 
         [Command("playeradministration.copysteam")]
-        protected void PlayerAdministrationCopySteamId(IPlayer aPlayer, string aCommand, string[] aArgs)
+        void PlayerAdministrationCopySteamId(IPlayer aPlayer, string aCommand, string[] aArgs)
         {
             if (aPlayer.IsServer || aArgs.Length < 1)
                 return;
@@ -3490,7 +3502,7 @@ namespace Oxide.Plugins
         }
 
         [Command("playeradministration.copyip")]
-        protected void PlayerAdministrationCopyIP(IPlayer aPlayer, string aCommand, string[] aArgs)
+        void PlayerAdministrationCopyIP(IPlayer aPlayer, string aCommand, string[] aArgs)
         {
             if (aPlayer.IsServer || aArgs.Length < 1)
                 return;
@@ -3511,7 +3523,7 @@ namespace Oxide.Plugins
         }
 
         [Command("playeradministration.refresh")]
-        protected void PlayerAdministrationRefresh(IPlayer aPlayer, string aCommand, string[] aArgs)
+        void PlayerAdministrationRefresh(IPlayer aPlayer, string aCommand, string[] aArgs)
         {
             if (aPlayer.IsServer || aArgs.Length < 1)
                 return;
@@ -3555,7 +3567,7 @@ namespace Oxide.Plugins
         }
 
         [Command(CUnbanUserCmd)]
-        private void PlayerAdministrationUnbanUserCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
+        void PlayerAdministrationUnbanUserCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
             LogDebug("PlayerAdministrationUnbanUserCallback was called");
             ulong targetId;
 
@@ -3578,7 +3590,7 @@ namespace Oxide.Plugins
         }
 
         [Command(CBanUserCmd)]
-        private void PlayerAdministrationBanUserCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
+        void PlayerAdministrationBanUserCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
             LogDebug("PlayerAdministrationBanUserCallback was called");
             ulong targetId;
             string banReasonMsg;
@@ -3628,7 +3640,7 @@ namespace Oxide.Plugins
         }
 
         [Command(CMainPageBanByIdCmd)]
-        private void PlayerAdministrationMainPageBanByIdCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
+        void PlayerAdministrationMainPageBanByIdCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
             if (aPlayer.IsServer)
                 return;
 
@@ -3658,7 +3670,7 @@ namespace Oxide.Plugins
         }
 
         [Command(CKickUserCmd)]
-        private void PlayerAdministrationKickUserCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
+        void PlayerAdministrationKickUserCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
             LogDebug("PlayerAdministrationKickUserCallback was called");
             ulong targetId;
             string kickReasonMsg;
@@ -3701,7 +3713,7 @@ namespace Oxide.Plugins
         }
 
         [Command(CUnmuteUserCmd)]
-        private void PlayerAdministrationUnmuteUserCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
+        void PlayerAdministrationUnmuteUserCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
             LogDebug("PlayerAdministrationUnmuteUserCallback was called");
             ulong targetId;
 
@@ -3738,7 +3750,7 @@ namespace Oxide.Plugins
         }
 
         [Command(CMuteUserCmd)]
-        private void PlayerAdministrationMuteUserCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
+        void PlayerAdministrationMuteUserCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
             LogDebug("PlayerAdministrationMuteUserCallback was called");
             ulong targetId;
             float time;
@@ -3786,7 +3798,7 @@ namespace Oxide.Plugins
         }
 
         [Command(CUnFreezeCmd)]
-        private void PlayerAdministrationUnfreezeCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
+        void PlayerAdministrationUnfreezeCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
             if (aPlayer.IsServer)
                 return;
 
@@ -3804,7 +3816,7 @@ namespace Oxide.Plugins
         }
 
         [Command(CFreezeCmd)]
-        private void PlayerAdministrationFreezeCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
+        void PlayerAdministrationFreezeCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
             if (aPlayer.IsServer)
                 return;
 
@@ -3822,7 +3834,7 @@ namespace Oxide.Plugins
         }
 
         [Command(CBackpackViewCmd)]
-        private void PlayerAdministrationViewBackpackCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
+        void PlayerAdministrationViewBackpackCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
             if (aPlayer.IsServer)
                 return;
 
@@ -3839,7 +3851,7 @@ namespace Oxide.Plugins
         }
 
         [Command(CInventoryViewCmd)]
-        private void PlayerAdministrationViewInventoryCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
+        void PlayerAdministrationViewInventoryCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
             if (aPlayer.IsServer)
                 return;
 
@@ -3856,7 +3868,7 @@ namespace Oxide.Plugins
         }
 
         [Command(CGodmodeCmd)]
-        private void PlayerAdministrationGodmodeCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
+        void PlayerAdministrationGodmodeCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
             if (aPlayer.IsServer)
                 return;
 
@@ -3874,7 +3886,7 @@ namespace Oxide.Plugins
         }
 
         [Command(CUnGodmodeCmd)]
-        private void PlayerAdministrationUnGodmodeCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
+        void PlayerAdministrationUnGodmodeCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
             if (aPlayer.IsServer)
                 return;
 
@@ -3892,7 +3904,7 @@ namespace Oxide.Plugins
         }
 
         [Command(CClearUserInventoryCmd)]
-        private void PlayerAdministrationClearUserInventoryCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
+        void PlayerAdministrationClearUserInventoryCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
             LogDebug("PlayerAdministrationClearUserInventoryCallback was called");
             ulong targetId;
 
@@ -3925,7 +3937,7 @@ namespace Oxide.Plugins
         }
 
         [Command(CResetUserBPCmd)]
-        private void PlayerAdministrationResetUserBlueprintsCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
+        void PlayerAdministrationResetUserBlueprintsCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
             LogDebug("PlayerAdministrationResetUserBlueprintsCallback was called");
             ulong targetId;
 
@@ -3958,7 +3970,7 @@ namespace Oxide.Plugins
         }
 
         [Command(CResetUserMetabolismCmd)]
-        private void PlayerAdministrationResetUserMetabolismCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
+        void PlayerAdministrationResetUserMetabolismCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
             LogDebug("PlayerAdministrationResetUserMetabolismCallback was called");
             ulong targetId;
 
@@ -3991,7 +4003,7 @@ namespace Oxide.Plugins
         }
 
         [Command(CRecoverUserMetabolismCmd)]
-        private void PlayerAdministrationRecoverUserMetabolismCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
+        void PlayerAdministrationRecoverUserMetabolismCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
             LogDebug("PlayerAdministrationRecoverUserMetabolismCallback was called");
             ulong targetId;
             BasePlayer player = null;
@@ -4027,7 +4039,7 @@ namespace Oxide.Plugins
         }
 
         [Command(CTeleportToUserCmd)]
-        private void PlayerAdministrationTeleportToUserCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
+        void PlayerAdministrationTeleportToUserCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
             LogDebug("PlayerAdministrationTeleportToUserCallback was called");
             BasePlayer player = BasePlayer.Find(aPlayer.Id);
             ulong targetId;
@@ -4048,7 +4060,7 @@ namespace Oxide.Plugins
         }
 
         [Command(CTeleportUserCmd)]
-        private void PlayerAdministrationTeleportUserCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
+        void PlayerAdministrationTeleportUserCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
             if (aPlayer.IsServer)
                 return;
 
@@ -4072,7 +4084,7 @@ namespace Oxide.Plugins
         }
 
         [Command(CSpectateUserCmd)]
-        private void PlayerAdministrationSpectateUserCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
+        void PlayerAdministrationSpectateUserCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
             if (aPlayer.IsServer)
                 return;
 
@@ -4093,7 +4105,7 @@ namespace Oxide.Plugins
         }
 
         [Command(CPermsCmd)]
-        private void PlayerAdministrationRunPermsCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
+        void PlayerAdministrationRunPermsCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
             if (aPlayer.IsServer)
                 return;
 
@@ -4113,7 +4125,7 @@ namespace Oxide.Plugins
         }
 
         [Command(CHurtUserCmd)]
-        private void PlayerAdministrationHurtUserCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
+        void PlayerAdministrationHurtUserCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
             LogDebug("PlayerAdministrationHurtUserCallback was called");
             ulong targetId;
             float amount;
@@ -4147,7 +4159,7 @@ namespace Oxide.Plugins
         }
 
         [Command(CKillUserCmd)]
-        private void PlayerAdministrationKillUserCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
+        void PlayerAdministrationKillUserCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
             LogDebug("PlayerAdministrationKillUserCallback was called");
             ulong targetId;
 
@@ -4180,7 +4192,7 @@ namespace Oxide.Plugins
         }
 
         [Command(CHealUserCmd)]
-        private void PlayerAdministrationHealUserCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
+        void PlayerAdministrationHealUserCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
             LogDebug("PlayerAdministrationHealUserCallback was called");
             ulong targetId;
             float amount;
@@ -4223,7 +4235,7 @@ namespace Oxide.Plugins
         /// <param name="admin">The admin whose UI should be refreshed.</param>
         /// <param name="pageType">The type of page being refreshed (should be UiPage.PlayerPage).</param>
         /// <param name="playerArg">The target player argument passed to BuildUI (Steam64 ID).</param>
-        private void StartUserPageRefresh(BasePlayer admin, UiPage pageType, string playerArg)
+        void StartUserPageRefresh(BasePlayer admin, UiPage pageType, string playerArg)
         {
             if (admin == null)
                 return;
@@ -4257,7 +4269,7 @@ namespace Oxide.Plugins
         /// closes the UI or switches away from the player page.
         /// </summary>
         /// <param name="adminId">The userID of the admin.</param>
-        private void StopUserPageRefresh(ulong adminId)
+        void StopUserPageRefresh(ulong adminId)
         {
             if (adminId == 0)
                 return;
@@ -4274,7 +4286,7 @@ namespace Oxide.Plugins
 
         #region Text Update Callbacks
         [Command(CMainPageBanIdInputTextCmd)]
-        private void PlayerAdministrationMainPageBanIdInputTextCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
+        void PlayerAdministrationMainPageBanIdInputTextCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
             if (aPlayer.IsServer)
                 return;
 
@@ -4295,7 +4307,7 @@ namespace Oxide.Plugins
         }
 
         [Command(CUserBtnPageSearchInputTextCmd)]
-        private void PlayerAdministrationUserBtnPageSearchInputTextCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
+        void PlayerAdministrationUserBtnPageSearchInputTextCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
             if (aPlayer.IsServer)
                 return;
 
@@ -4316,7 +4328,7 @@ namespace Oxide.Plugins
         }
 
         [Command(CUserPageReasonInputTextCmd)]
-        private void PlayerAdministrationUserPageReasonInputTextCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
+        void PlayerAdministrationUserPageReasonInputTextCallback(IPlayer aPlayer, string aCommand, string[] aArgs) {
             if (aPlayer.IsServer)
                 return;
 
