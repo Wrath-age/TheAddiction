@@ -1629,16 +1629,7 @@ namespace Oxide.Plugins
                 string avatarPng = ResolvePlayerAvatar(aPlayerId);
                 if (!string.IsNullOrEmpty(avatarPng))
                 {
-                    var element = new CuiElement
-                    {
-                        Parent = headerPanel,
-                        Components =
-                        {
-                            new CuiRawImageComponent { Png = avatarPng, Sprite = "assets/content/textures/generic/fulltransparent.tga" },
-                            new CuiRectTransformComponent { AnchorMin = $"{avatarMin.X} {avatarMin.Y}", AnchorMax = $"{avatarMax.X} {avatarMax.Y}" }
-                        }
-                    };
-                    aUIObj.Add(element);
+                    aUIObj.AddPanel(headerPanel, avatarMin, avatarMax, false, null, string.Empty, avatarPng);
                 }
                 else
                 {
