@@ -70,14 +70,6 @@ namespace Oxide.Plugins
         private Plugin ServerArmour;
         [PluginReference]
         private Plugin Godmode;
-        // Reference to the ImageLibrary plugin for fetching and caching images (e.g. player avatars)
-        [PluginReference]
-        private Plugin ImageLibrary;
-
-        // Generated avatar cache. Used to store identicon‑style fallback avatars for users whose Steam avatars
-        // cannot be downloaded (e.g. due to network restrictions or lack of API key). The key is the player's
-        // Steam64 ID and the value is a base64‑encoded PNG image. These generated avatars are created on demand
-        // and cached to avoid regenerating them every refresh. They provide a unique, deterministic image for
         // each user based on their ID so admins can still visually distinguish players at a glance.
         private readonly Dictionary<ulong, string> FGeneratedAvatars = new Dictionary<ulong, string>();
 
@@ -1605,13 +1597,13 @@ namespace Oxide.Plugins
                 CuiPoint idLblMin = new CuiPoint(0.02f, 0.32f);
                 CuiPoint idLblMax = new CuiPoint(0.60f, 0.82f);
                 CuiPoint idCopyMin = new CuiPoint(0.60f, 0.25f);
-                CuiPoint idCopyMax = new CuiPoint(0.68f, 0.75f);
-                CuiPoint profileBtnMin = new CuiPoint(0.69f, 0.25f);
-                CuiPoint profileBtnMax = new CuiPoint(0.77f, 0.75f);
-                CuiPoint refreshBtnMin = new CuiPoint(0.78f, 0.25f);
-                CuiPoint refreshBtnMax = new CuiPoint(0.84f, 0.75f);
-                CuiPoint avatarMin = new CuiPoint(0.86f, 0.15f);
-                CuiPoint avatarMax = new CuiPoint(0.97f, 0.85f);
+                CuiPoint idCopyMax = new CuiPoint(0.62f, 0.75f);
+                CuiPoint steamIdCopyMin = new CuiPoint(0.64f, 0.25f);
+                CuiPoint steamIdCopyMax = new CuiPoint(0.74f, 0.75f);
+                CuiPoint ipCopyMin = new CuiPoint(0.76f, 0.25f);
+                CuiPoint ipCopyMax = new CuiPoint(0.86f, 0.75f);
+                CuiPoint refreshBtnMin = new CuiPoint(0.88f, 0.25f);
+                CuiPoint refreshBtnMax = new CuiPoint(0.98f, 0.75f);
 
                 string idLabelText = string.Format(
                     lang.GetMessage("Id Label Format", this, aUIObj.PlayerIdString),
@@ -1620,21 +1612,13 @@ namespace Oxide.Plugins
                 );
                 aUIObj.AddLabel(headerPanel, idLblMin, idLblMax, CuiColor.TextAlt, idLabelText, string.Empty, 15, TextAnchor.MiddleLeft);
 
-                aUIObj.AddButton(headerPanel, idCopyMin, idCopyMax, CuiColor.Button, CuiColor.Text, lang.GetMessage("Copy Id Button Text", this, aUIObj.PlayerIdString), $"playeradministration.copyinfo {aPlayerId}", string.Empty, string.Empty, 12, TextAnchor.MiddleCenter);
+                aUIObj.AddButton(headerPanel, idCopyMin, idCopyMax, CuiColor.Button, CuiColor.Text, "Copy ID", $"playeradministration.copyinfo {aPlayerId}", string.Empty, string.Empty, 12, TextAnchor.MiddleCenter);
 
-                aUIObj.AddButton(headerPanel, profileBtnMin, profileBtnMax, CuiColor.Button, CuiColor.Text, lang.GetMessage("Profile Button Text", this, aUIObj.PlayerIdString), $"{COpenProfileCmd} {aPlayerId}", string.Empty, string.Empty, 12, TextAnchor.MiddleCenter);
+                aUIObj.AddButton(headerPanel, steamIdCopyMin, steamIdCopyMax, CuiColor.Button, CuiColor.Text, "Copy Steam", $"playeradministration.copysteam {aPlayerId}", string.Empty, string.Empty, 12, TextAnchor.MiddleCenter);
 
-                aUIObj.AddButton(headerPanel, refreshBtnMin, refreshBtnMax, CuiColor.ButtonWarning, CuiColor.TextAlt, lang.GetMessage("Refresh Avatar Button Text", this, aUIObj.PlayerIdString), $"{CRefreshAvatarCmd} {aPlayerId}", string.Empty, string.Empty, 12, TextAnchor.MiddleCenter);
+                aUIObj.AddButton(headerPanel, ipCopyMin, ipCopyMax, CuiColor.Button, CuiColor.Text, "Copy IP", $"playeradministration.copyip {aPlayerId}", string.Empty, string.Empty, 12, TextAnchor.MiddleCenter);
 
-                string avatarPng = ResolvePlayerAvatar(aPlayerId);
-                if (!string.IsNullOrEmpty(avatarPng))
-                {
-                    aUIObj.AddPanel(headerPanel, avatarMin, avatarMax, false, null, string.Empty, avatarPng);
-                }
-                else
-                {
-                    aUIObj.AddPanel(headerPanel, avatarMin, avatarMax, false, CuiColor.BackgroundMedium, string.Empty);
-                }
+                aUIObj.AddButton(headerPanel, refreshBtnMin, refreshBtnMax, CuiColor.ButtonWarning, CuiColor.TextAlt, "Refresh", $"playeradministration.refresh {aPlayerId}", string.Empty, string.Empty, 12, TextAnchor.MiddleCenter);
             }
             aUIObj.AddLabel(
                 aParent, CUserPageLblAuthLbAnchor, CUserPageLblAuthRtAnchor, CuiColor.TextAlt,
@@ -3475,6 +3459,38 @@ namespace Oxide.Plugins
         /// <param name="aArgs">Command arguments.  The first argument should be the encoded value to copy.</param>
         [Command("playeradministration.copyinfo")]
         private void PlayerAdministrationCopyInfo(IPlayer aPlayer, string aCommand, string[] aArgs)
+        {
+            if (aPlayer.IsServer || aArgs.Length < 1)
+                return;
+
+            BasePlayer player = BasePlayer.Find(aPlayer.Id);
+            if (player == null || !VerifyPermission(ref player, string.Empty, true))
+                return;
+
+            string info = UnescapeString(aArgs[0]);
+            if (!string.IsNullOrEmpty(info))
+                player.ChatMessage(info);
+        }
+
+        [Command("playeradministration.copysteam")]
+        private void PlayerAdministrationCopySteamId(IPlayer aPlayer, string aCommand, string[] aArgs)
+        {
+            if (aPlayer.IsServer || aArgs.Length < 1)
+                return;
+
+            BasePlayer player = BasePlayer.Find(aPlayer.Id);
+            if (player == null || !VerifyPermission(ref player, string.Empty, true))
+                return;
+
+            ulong steamId;
+            if (!ulong.TryParse(aArgs[0], out steamId))
+                return;
+
+            player.ChatMessage($"Steam ID: {steamId}");
+        }
+
+        [Command("playeradministration.copyip")]
+        private void PlayerAdministrationCopyIP(IPlayer aPlayer, string aCommand, string[] aArgs)
         {
             if (aPlayer.IsServer)
                 return;
