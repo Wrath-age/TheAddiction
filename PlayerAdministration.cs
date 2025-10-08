@@ -84,6 +84,27 @@ namespace Oxide.Plugins
 #pragma warning restore IDE0044, CS0649
         #endregion Plugin References
 
+        private readonly Dictionary<string, Timer> FRefreshTimers = new Dictionary<string, Timer>();
+        
+        private void QueueUIRefresh(BasePlayer player, UiPage pageType, string targetId = null, float delay = 0.1f)
+        {
+            string key = $"{player.UserIDString}_{pageType}_{targetId}";
+            if (FRefreshTimers.ContainsKey(key))
+            {
+                FRefreshTimers[key]?.Destroy();
+                FRefreshTimers.Remove(key);
+            }
+            
+            Timer refreshTimer = timer.Once(delay, () =>
+            {
+                CuiHelper.DestroyUi(player, CBasePanelName);
+                BuildUI(player, pageType, targetId);
+                if (FRefreshTimers.ContainsKey(key))
+                    FRefreshTimers.Remove(key);
+            });
+            FRefreshTimers[key] = refreshTimer;
+        }
+
         #region Library Imports
         private readonly RustLib rust = Interface.Oxide.GetLibrary<RustLib>();
         private readonly Player Player = Interface.Oxide.GetLibrary<Player>();
@@ -1029,15 +1050,16 @@ namespace Oxide.Plugins
                     if (hasImage)
                     {
                         avatarPng = ImageLibrary.Call("GetImage", steamId.ToString(), (ulong)0) as string ?? string.Empty;
+                        if (string.IsNullOrEmpty(avatarPng))
+                        {
+                            RequestSteamAvatar(steamId);
+                            return GenerateIdenticon(steamId); // Use identicon while loading
+                        }
                     }
                     else
                     {
-                        string url = ImageLibrary.Call("GetImage", steamId.ToString(), (ulong)0, true) as string;
-                        if (!string.IsNullOrEmpty(url))
-                        {
-                            ImageLibrary.Call("AddImage", url, steamId.ToString(), (ulong)0);
-                        }
                         RequestSteamAvatar(steamId);
+                        return GenerateIdenticon(steamId); // Use identicon while loading
                     }
                 }
                 catch
@@ -1607,7 +1629,16 @@ namespace Oxide.Plugins
                 string avatarPng = ResolvePlayerAvatar(aPlayerId);
                 if (!string.IsNullOrEmpty(avatarPng))
                 {
-                    aUIObj.AddPanel(headerPanel, avatarMin, avatarMax, false, null, string.Empty, avatarPng);
+                    var element = new CuiElement
+                    {
+                        Parent = headerPanel,
+                        Components =
+                        {
+                            new CuiRawImageComponent { Png = avatarPng, Sprite = "assets/content/textures/generic/fulltransparent.tga" },
+                            new CuiRectTransformComponent { AnchorMin = $"{avatarMin.X} {avatarMin.Y}", AnchorMax = $"{avatarMax.X} {avatarMax.Y}" }
+                        }
+                    };
+                    aUIObj.Add(element);
                 }
                 else
                 {
@@ -3440,7 +3471,7 @@ namespace Oxide.Plugins
             var servUser = ServerUsers.Get(targetId);
             UiPage pageType = (servUser != null && servUser.group == ServerUsers.UserGroup.Banned) ? UiPage.PlayerPageBanned : UiPage.PlayerPage;
             // Rebuild the UI after toggling.  Small delay ensures the UI refresh happens after the click event
-            timer.Once(0.2f, () => BuildUI(player, pageType, targetId.ToString()));
+            QueueUIRefresh(player, pageType, targetId?.ToString(), 0.2f);
         }
 
         /// <summary>
